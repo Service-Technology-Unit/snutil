@@ -1114,6 +1114,8 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 					log.debug("Eclipsys vendor data found for Vendor #" + vendorId);
 				}		
 				vendor = new JSONObject();
+				vendor.put("u_source_system", eclipsysSysId);
+				vendor.put("u_source_id", vendorId);
 				vendor.put("u_extrefid", vendorId);
 				vendor.put("name", rs.getString("VEND"));
 				String notes = "Vendor #" + vendorId + " inserted via integration during Purchase Order import.";
@@ -1262,6 +1264,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 					log.debug("Eclipsys contract data found for Contract #" + contractId);
 				}		
 				contract = new JSONObject();
+				contract.put("u_source_system", eclipsysSysId);
 			    contract.put("u_source_id", contractId);
 			    contract.put("vendor", translateVendor(rs.getString("VENDID"), details));
 			    contract.put("short_description", rs.getString("POCONTDES"));
