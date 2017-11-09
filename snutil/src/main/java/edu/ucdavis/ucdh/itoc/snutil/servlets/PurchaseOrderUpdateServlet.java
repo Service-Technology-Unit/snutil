@@ -364,8 +364,8 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		String id = (String) newPO.get("u_source_id");
 		if (log.isDebugEnabled()) {
 			log.debug("Inserting PO #" + id);
-		}		
-		
+		}
+
 		// create HttpPost
 		String url = serviceNowServer + UPDATE_URL;
 		HttpPost post = new HttpPost(url);
@@ -458,7 +458,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		JSONArray lines = (JSONArray) newPO.get("lines");
 		if (log.isDebugEnabled()) {
 			log.debug("Inserting " + lines.size() + " lines for PO #" + id);
-		}		
+		}
 
 		int insertCt = 0;
 		int failedCt = 0;
@@ -497,8 +497,8 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		String id = (String) newPO.get("u_source_id");
 		if (log.isDebugEnabled()) {
 			log.debug("Updating PO #" + id);
-		}		
-		
+		}
+
 		// create HttpPut
 		String url = serviceNowServer + UPDATE_URL + "/" + sysId;
 		HttpPut put = new HttpPut(url);
@@ -580,8 +580,8 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		JSONArray lines = (JSONArray) newPO.get("lines");
 		if (log.isDebugEnabled()) {
 			log.debug("Updatting " + lines.size() + " lines for PO #" + id);
-		}		
-		
+		}
+
 		int insertCt = 0;
 		int updateCt = 0;
 		int deleteCt = 0;
@@ -646,8 +646,8 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		String lineNr = (String) line.get("u_line_number");
 		if (log.isDebugEnabled()) {
 			log.debug("Inserting line #" + lineNr);
-		}		
-		
+		}
+
 		// create HttpPost
 		String url = serviceNowServer + UPDATE_LINE_URL;
 		HttpPost post = new HttpPost(url);
@@ -725,8 +725,8 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		String sysId = (String) line.get("sys_id");
 		if (log.isDebugEnabled()) {
 			log.debug("Updating line #" + lineNr);
-		}		
-		
+		}
+
 		// create HttpPost
 		String url = serviceNowServer + UPDATE_LINE_URL + "/" + sysId;
 		HttpPut put = new HttpPut(url);
@@ -807,7 +807,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		if (log.isDebugEnabled()) {
 			log.debug("Deleting line #" + lineNr);
 		}
-		
+
 		// create HttpDelete
 		String url = serviceNowServer + UPDATE_LINE_URL + "/" + sysId;
 		HttpDelete delete = new HttpDelete(url);
@@ -919,8 +919,8 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 
 		if (log.isDebugEnabled()) {
 			log.debug("Fetching the PO lines for PO #" + id);
-		}		
-		
+		}
+
 		// fetch PO lines from Eclipsys
 		Connection conn = null;
 		PreparedStatement ps = null;
@@ -1001,8 +1001,12 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 			if (StringUtils.isNotEmpty(iamId)) {
 				buyerSysId = getUserSysId(iamId, details);
 			}
+			if (StringUtils.isEmpty(buyerSysId)) {
+				log.warn("Unable to translate Eclipsys Buyer #" + originalValue);
+				eventService.logEvent(new Event("ServletError", "Eclipsys Buyer Translation Error", "Unable to translate Eclipsys Buyer #" + originalValue, details));
+			}
 		}
-		
+
 		return buyerSysId;
 	}
 
@@ -1012,7 +1016,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		if (StringUtils.isNotEmpty(originalValue)) {
 			departmentSysId = getReferenceSysId("department", fixDepartmentId(originalValue), details);
 		}
-		
+
 		return departmentSysId;
 	}
 
@@ -1024,8 +1028,12 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 			if (StringUtils.isNotEmpty(locationId)) {
 				locationSysId = getReferenceSysId("location", locationId, details);
 			}
+			if (StringUtils.isEmpty(locationSysId)) {
+				log.warn("Unable to translate Eclipsys Location " + originalValue);
+				eventService.logEvent(new Event("ServletError", "Eclipsys Location Translation Error", "Unable to translate Eclipsys Locaation " + originalValue, details));
+			}
 		}
-		
+
 		return locationSysId;
 	}
 
@@ -1057,7 +1065,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 				vendorSysId = addVendor(originalValue, details);
 			}
 		}
-		
+
 		return vendorSysId;
 	}
 
@@ -1070,7 +1078,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 				contractSysId = addContract(originalValue, details);
 			}
 		}
-		
+
 		return contractSysId;
 	}
 
@@ -1080,7 +1088,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		if (StringUtils.isNotEmpty(originalValue)) {
 			shipToSysId = getReferenceSysId("stockroom", originalValue, details);
 		}
-		
+
 		return shipToSysId;
 	}
 
@@ -1097,8 +1105,8 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 
 		if (log.isDebugEnabled()) {
 			log.debug("Fetching Eclipsys vendor data for Vendor #" + vendorId);
-		}		
-		
+		}
+
 		// fetch vendor data from Eclipsys
 		JSONObject vendor = null;
 		Connection conn = null;
@@ -1112,7 +1120,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 			if (rs.next()) {
 				if (log.isDebugEnabled()) {
 					log.debug("Eclipsys vendor data found for Vendor #" + vendorId);
-				}		
+				}
 				vendor = new JSONObject();
 				vendor.put("u_source_system", eclipsysSysId);
 				vendor.put("u_source_id", vendorId);
@@ -1171,7 +1179,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 
 		if (log.isDebugEnabled()) {
 			log.debug("Inserting new Vendor #" + vendor.get("u_extrefid"));
-		}		
+		}
 
 		// create HttpPost
 		String url = serviceNowServer + VENDOR_INSERT_URL;
@@ -1247,8 +1255,8 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 
 		if (log.isDebugEnabled()) {
 			log.debug("Fetching Eclipsys contract data for Contract #" + contractId);
-		}		
-		
+		}
+
 		// fetch contract data from Eclipsys
 		JSONObject contract = null;
 		Connection conn = null;
@@ -1262,7 +1270,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 			if (rs.next()) {
 				if (log.isDebugEnabled()) {
 					log.debug("Eclipsys contract data found for Contract #" + contractId);
-				}		
+				}
 				contract = new JSONObject();
 				contract.put("u_source_system", eclipsysSysId);
 			    contract.put("u_source_id", contractId);
@@ -1328,7 +1336,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 
 		if (log.isDebugEnabled()) {
 			log.debug("Inserting new Contract #" + contract.get("u_source_id"));
-		}		
+		}
 
 		// create HttpPost
 		String url = serviceNowServer + CONTRACT_INSERT_URL;
@@ -1430,7 +1438,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		if (log.isDebugEnabled()) {
 			log.debug("Fetching IAM ID for Eclipsys Buyer " + id);
 		}
-		
+
 		// fetch  ID from buyer xref database
 		Connection conn = null;
 		PreparedStatement ps = null;
@@ -1512,7 +1520,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		if (log.isDebugEnabled()) {
 			log.debug("Fetching FD&C Location ID for Eclipsys Location " + id);
 		}
-		
+
 		// fetch location ID from xref database
 		Connection conn = null;
 		PreparedStatement ps = null;
