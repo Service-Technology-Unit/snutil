@@ -47,7 +47,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 	private static final String CONTRACT_SQL = "SELECT POCONTNU, FAC, VENDID, POCONTDES, CDATE, SDATE, EDATE, RSDATE, REDATE, TDATEF, TDATEL, CONSOURCE, CONSTATUS, NUMLINES, USERP, DOCNOTE, DOCLNOTE, VENDCONU, MFGDCONU, JITPROGID  FROM CONTRACT WHERE POCONTNU=?";
 	private static final String ECLIPSYS_URL = "/api/now/table/u_source_target?sysparm_fields=sys_id&sysparm_query=u_name%3DEclipsys";
 	private static final String FETCH_URL = "/api/now/table/proc_po?sysparm_display_value=all&sysparm_query=u_source_id%3D";
-	private static final String FETCH_LINES_URL = "/api/now/table/proc_po_item?sysparm_display_value=all&sysparm_query=po%3D";
+	private static final String FETCH_LINES_URL = "/api/now/table/proc_po_item?sysparm_display_value=all&sysparm_query=purchase_order%3D";
 	private static final String SYSID_URL = "/api/now/table/sys_user?sysparm_fields=sys_id&sysparm_query=employee_number%3D";
 	private static final String DEPT_URL = "/api/now/table/cmn_department?sysparm_fields=sys_id&sysparm_query=id%3D";
 	private static final String LOC_URL = "/api/now/table/cmn_location?sysparm_fields=sys_id&sysparm_query=u_location_code%3D";
@@ -317,8 +317,16 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 				String newLineNr = (String) thisNewLine.get("u_line_number");
 				JSONObject thisOldLine = null;
 				for (int k=0; k<oldLineCt; k++) {
-					if (newLineNr.equals((String) ((JSONObject) oldLines.get(k)).get("u_line_number"))) {
-						thisOldLine = (JSONObject) oldLines.get(k);
+					String oldLineNr = "";
+					JSONObject oldLine = (JSONObject) oldLines.get(k);
+					if (oldLine != null) {
+						JSONObject oldLineNrObject = (JSONObject) oldLine.get("u_line_number");
+						if (oldLineNrObject != null) {
+							oldLineNr = (String) oldLineNrObject.get("value");
+						}
+					}
+					if (newLineNr.equals(oldLineNr)) {
+						thisOldLine = oldLine;
 					}
 				}
 				if (thisOldLine != null) {
