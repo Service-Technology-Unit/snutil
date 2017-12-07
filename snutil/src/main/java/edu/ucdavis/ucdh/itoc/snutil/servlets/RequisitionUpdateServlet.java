@@ -36,9 +36,9 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 import edu.ucdavis.ucdh.itoc.snutil.beans.Event;
 
 /**
- * <p>This servlet updates the ServiceNow proc_po table with data from the Eclipsys PO table.</p>
+ * <p>This servlet updates the ServiceNow ???? table with data from the Eclipsys RPO table.</p>
  */
-public class PurchaseOrderUpdateServlet extends SubscriberServlet {
+public class RequisitionUpdateServlet extends SubscriberServlet {
 	private static final long serialVersionUID = 1;
 	private static final String LINE_SQL = "SELECT LINE, FULLDESC, QTY, UNIT, PRICE, ITEM, TOTREC, VENDID, DOCNOTE, TAXABLE FROM POLINES WHERE PO=? AND CHANGE=? ORDER BY LINE";
 	private static final String BUYER_SQL = "SELECT IAM_ID FROM ECLIPSYS_BUYER_XREF WHERE ID=?";
@@ -138,13 +138,13 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 					}
 				}
 			} else {
-				response = "2;Purchase Order versions that are not the current version are ignored.";
+				response = "2;Requisition versions that are not the current version are ignored.";
 				if (log.isDebugEnabled()) {
-					log.debug("Purchase Order version " + version + " is not the current version (" + currentVersion + ") -- transaction ignored.");
+					log.debug("Requisition version " + version + " is not the current version (" + currentVersion + ") -- transaction ignored.");
 				}
 			}
 		} else {
-			response = "2;Purchase Orders for nonIT departments are ignored.";
+			response = "2;Requisitions for nonIT departments are ignored.";
 			if (log.isDebugEnabled()) {
 				log.debug("Department " + departmentId + " is not an IT Department -- transaction ignored.");
 			}
@@ -218,7 +218,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 	/**
 	 * <p>Returns the ServiceNow PO and PO Line data on file, if present.</p>
 	 *
-	 * @param po the ServiceNow Purchase Order
+	 * @param po the ServiceNow Requisition
 	 * @param details the <code>JSONObject</code> object containing the details of the request
 	 * @return the ServiceNow po data
 	 */
@@ -917,7 +917,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 	/**
 	 * <p>Fetches the PO lines from the Eclipsys database.</p>
 	 *
-	 * @param id the Eclipsys Purchase Order ID
+	 * @param id the Eclipsys Requisition ID
 	 * @param details the <code>JSONObject</code> object containing the details of the request
 	 * @return a JSONArray of the PO lines
 	 */
@@ -941,50 +941,35 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 			rs = ps.executeQuery();
 			while (rs.next()) {
 				JSONObject thisLine = new JSONObject();
-				thisLine.put("status", "Ordered");
-				thisLine.put("discount", "0");
-				thisLine.put("cost", rs.getString("PRICE"));
-				thisLine.put("list_price", rs.getString("PRICE"));
-				thisLine.put("ordered_quantity", rs.getString("QTY"));
-				thisLine.put("part_number", rs.getString("ITEM"));
-				thisLine.put("received_quantity", rs.getString("TOTREC"));
-				thisLine.put("short_description", rs.getString("FULLDESC"));
-				thisLine.put("vendor", translateVendor(rs.getString("VENDID"), details));
-				thisLine.put("u_line_number", rs.getString("LINE"));
-				thisLine.put("u_notes", rs.getString("DOCNOTE"));
-				thisLine.put("u_unit_of_measure", rs.getString("UNIT"));
-				if ("Y".equalsIgnoreCase(rs.getString("TAXABLE"))) {
-					thisLine.put("u_taxable", "true");
-				} else {
-					thisLine.put("u_taxable", "false");
-				}
-				float ordered = 0;
-				float received = 0;
-				try {
-					ordered = Float.parseFloat(rs.getString("QTY"));
-				} catch (Exception e) {
-					// no one cares
-				}
-				try {
-					received = Float.parseFloat(rs.getString("TOTREC"));
-				} catch (Exception e) {
-					// no one cares
-				}
-				if (received == ordered) {
-					thisLine.put("status", "Received");
-					thisLine.put("remaining_quantity", "0");
-				} else {
-					thisLine.put("remaining_quantity", (ordered - received) + "");
-				}
-				float total = 0;
-				try {
-					total = ordered * Float.parseFloat(rs.getString("PRICE"));
-				} catch (Exception e) {
-					// no one cares
-				}
-				thisLine.put("total_cost", total + "");
-				thisLine.put("total_list_price", total + "");
-				lines.add(thisLine);
+			    thisLine.put("status", "Ordered");
+			    thisLine.put("discount", "0");
+			    thisLine.put("cost", rs.getString("PRICE"));
+			    thisLine.put("list_price", rs.getString("PRICE"));
+			    thisLine.put("ordered_quantity", rs.getString("QTY"));
+			    thisLine.put("part_number", rs.getString("ITEM"));
+			    thisLine.put("received_quantity", rs.getString("TOTREC"));
+			    thisLine.put("short_description", rs.getString("FULLDESC"));
+			    thisLine.put("vendor", translateVendor(rs.getString("VENDID"), details));
+			    thisLine.put("u_line_number", rs.getString("LINE"));
+			    thisLine.put("u_notes", rs.getString("DOCNOTE"));
+			    thisLine.put("u_unit_of_measure", rs.getString("UNIT"));
+			    if ("Y".equalsIgnoreCase(rs.getString("TAXABLE"))) {
+			    	thisLine.put("u_taxable", "true");
+			    } else {
+			    	thisLine.put("u_taxable", "false");
+			    }
+			    float ordered = Float.parseFloat(rs.getString("QTY"));
+			    float received = Float.parseFloat(rs.getString("TOTREC"));
+			    if (received == ordered) {
+				    thisLine.put("status", "Received");
+				    thisLine.put("remaining_quantity", "0");
+			    } else {
+				    thisLine.put("remaining_quantity", (ordered - received) + "");
+			    }
+			    float total = ordered * Float.parseFloat(rs.getString("PRICE"));
+			    thisLine.put("total_cost", total + "");
+			    thisLine.put("total_list_price", total + "");
+			    lines.add(thisLine);
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to fetch lines for PO #" + id + ": " + e, e);
@@ -1067,12 +1052,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 	private String translateStatus(String originalValue, JSONObject details) {
 		String status = "Ordered";
 
-		int originalStatus = 0;
-		try {
-			originalStatus = Integer.parseInt(originalValue);
-		} catch (Exception e) {
-			// no one cares
-		}
+		int originalStatus = Integer.parseInt(originalValue);
 		if (originalStatus == 0) {
 			status = "Canceled";
 		} else if (originalStatus == 1) {
@@ -1154,7 +1134,7 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 				vendor.put("u_source_id", vendorId);
 				vendor.put("u_extrefid", vendorId);
 				vendor.put("name", rs.getString("VEND"));
-				String notes = "Vendor #" + vendorId + " inserted via integration during Purchase Order import.";
+				String notes = "Vendor #" + vendorId + " inserted via integration during Requisition import.";
 				if (StringUtils.isNotEmpty(rs.getString("DOCNOTE"))) {
 					notes += "\n\n" + rs.getString("DOCNOTE");
 				}
@@ -1301,17 +1281,17 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 				}
 				contract = new JSONObject();
 				contract.put("u_source_system", eclipsysSysId);
-				contract.put("u_source_id", contractId);
-				contract.put("vendor", translateVendor(rs.getString("VENDID"), details));
-				contract.put("short_description", rs.getString("POCONTDES"));
-				contract.put("starts", rs.getString("SDATE"));
-				contract.put("ends", rs.getString("EDATE"));
-				contract.put("renewal_date", rs.getString("RSDATE"));
-				contract.put("renewal_end_date", rs.getString("REDATE"));
-//				contract.put("active", rs.getString("CONSTATUS"));
-//				contract.put("contract_administrator", rs.getString("USERP"));
-				contract.put("description", rs.getString("DOCLNOTE"));
-				String notes = "Contract #" + contractId + " inserted via integration during Purchase Order import.";
+			    contract.put("u_source_id", contractId);
+			    contract.put("vendor", translateVendor(rs.getString("VENDID"), details));
+			    contract.put("short_description", rs.getString("POCONTDES"));
+			    contract.put("starts", rs.getString("SDATE"));
+			    contract.put("ends", rs.getString("EDATE"));
+			    contract.put("renewal_date", rs.getString("RSDATE"));
+			    contract.put("renewal_end_date", rs.getString("REDATE"));
+//			    contract.put("active", rs.getString("CONSTATUS"));
+//			    contract.put("contract_administrator", rs.getString("USERP"));
+			    contract.put("description", rs.getString("DOCLNOTE"));
+				String notes = "Contract #" + contractId + " inserted via integration during Requisition import.";
 				if (StringUtils.isNotEmpty(rs.getString("DOCNOTE"))) {
 					notes += "\n\n" + rs.getString("DOCNOTE");
 				}

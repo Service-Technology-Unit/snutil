@@ -33,12 +33,14 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 	private static final long serialVersionUID = 1;
 	private static final String FETCH_PC_URL = "/api/now/table/cmdb_ci_pc_hardware?sysparm_display_value=all&sysparm_query=name%3D";
 	private static final String FETCH_SERVER_URL = "/api/now/table/cmdb_ci_server?sysparm_display_value=all&sysparm_query=name%3D";
+	private static final String FETCH_PRINTER_URL = "/api/now/table/cmdb_ci_printer?sysparm_display_value=all&sysparm_query=name%3D";
 	private static final String SYSID_URL = "/api/now/table/sys_user?sysparm_fields=sys_id&sysparm_query=user_name%3D";
 	private static final String DEPT_URL = "/api/now/table/cmn_department?sysparm_fields=sys_id,cost_center&sysparm_query=id%3D";
 	private static final String LOC_URL = "/api/now/table/cmn_location?sysparm_fields=sys_id&sysparm_query=u_location_code%3D";
 	private static final String UPDATE_PC_URL = "/api/now/table/cmdb_ci_pc_hardware";
 	private static final String UPDATE_SERVER_URL = "/api/now/table/cmdb_ci_server";
-	private static final String[] PROPERTY = {"asset_tag:assetTag", "approval_group:assignment", "assigned_to:contactName", "assignment_group:assignment", "comments:comments", "default_gateway:defaultGateway", "department:department", "dns_domain:domain", "hardware_status:status", "ip_address:ipAddress", "location:location", "mac_address:macAddress", "manufacturer:manufacturer", "model_number:model", "name:name", "os:operatingSystem", "serial_number:serialNumber", "short_description:description", "support_group:assignment", "vendor:vendor"};
+	private static final String UPDATE_PRINTER_URL = "/api/now/table/cmdb_ci_printer";
+	private static final String[] PROPERTY = {"asset_tag:assetTag", "approval_group:assignment", "assigned_to:contactName", "assignment_group:assignment", "comments:comments", "default_gateway:defaultGateway", "department:department", "dns_domain:domain", "hardware_status:status", "ip_address:ipAddress", "location:location", "mac_address:macAddress", "manufacturer:manufacturer", "model_number:model", "model_id:model", "name:name", "os:operatingSystem", "serial_number:serialNumber", "short_description:description", "support_group:assignment", "vendor:vendor"};
 	private static final String[] PERSON_PROPERTY = {"assigned_to"};
 	private Map<String,String> fieldMap = new HashMap<String,String>();
 	private Map<String,String> referenceURL = new HashMap<String,String>();
@@ -74,9 +76,11 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 
 		String action = (String) details.get("action");
 		String type = req.getParameter("type");
+		String subtype = req.getParameter("subtype");
 		details.put("type", type);
 		String sysId = null;
-		if ("computer".equalsIgnoreCase(type)) {
+		if ("computer".equalsIgnoreCase(type) ||
+				("officeelectronics".equalsIgnoreCase(type) && "Printer".equalsIgnoreCase(subtype))) {
 			JSONObject newCI = buildCIFromRequest(req, details);
 			details.put("newData", newCI);
 			String name = (String) newCI.get("name");
@@ -127,6 +131,8 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 			String url = serviceNowServer + FETCH_PC_URL + URLEncoder.encode(name, "UTF-8");
 			if ("server".equalsIgnoreCase(serviceNowType)) {
 				url = serviceNowServer + FETCH_SERVER_URL + URLEncoder.encode(name, "UTF-8");
+			} else if ("printer".equalsIgnoreCase(serviceNowType)) {
+				url = serviceNowServer + FETCH_PRINTER_URL + URLEncoder.encode(name, "UTF-8");
 			}
 			HttpGet get = new HttpGet(url);
 			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
@@ -215,6 +221,8 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 		String url = serviceNowServer + UPDATE_PC_URL;
 		if ("server".equalsIgnoreCase(serviceNowType)) {
 			url = serviceNowServer + UPDATE_SERVER_URL;
+		} else if ("printer".equalsIgnoreCase(serviceNowType)) {
+			url = serviceNowServer + UPDATE_PRINTER_URL;
 		}
 		HttpPost post = new HttpPost(url);
 		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
@@ -307,6 +315,8 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 		String url = serviceNowServer + UPDATE_PC_URL + "/" + sysId;
 		if ("server".equalsIgnoreCase(serviceNowType)) {
 			url = serviceNowServer + UPDATE_SERVER_URL + "/" + sysId;
+		} else if ("printer".equalsIgnoreCase(serviceNowType)) {
+			url = serviceNowServer + UPDATE_PRINTER_URL + "/" + sysId;
 		}
 		HttpPut put = new HttpPut(url);
 		put.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
@@ -322,6 +332,12 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 				String value = (String) newCI.get(field);
 				if (StringUtils.isNotEmpty(value)) {
 					updateData.put(field, value);
+				} else {
+					// send the mac address, even if it is blank, to correct malformed values
+					if ("mac_address".equalsIgnoreCase(field)) {
+						updateData.put(field, value);
+					}
+					
 				}
 			}
 		}
@@ -393,6 +409,7 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 		if (StringUtils.isNotEmpty((String) ci.get("manufacturer"))) {
 			ci.put("manufacturer", fixManufacturer((String) ci.get("manufacturer")));
 		}
+		ci.put("virtual", "false");
 		if (((String) ci.get("name")).indexOf("VM") != -1) {
 			ci.put("virtual", "true");
 		}
@@ -442,7 +459,9 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 			name = "";
 		}
 		name = name.trim();
-		if (name.indexOf(".") != -1) {
+		if (name.startsWith("10.") || name.startsWith("152.") || name.indexOf(".") == -1) {
+			// do not strip off suffix
+		} else {
 			name = name.substring(0, name.indexOf("."));
 		}
 		if (name.length() > 3 && name.indexOf("_") > name.length() - 3) {
@@ -474,7 +493,9 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 	private String determineServiceNowType(String subtype) {
 		String serviceNowType = "Personal Computer";
 
-		if ("unix".equalsIgnoreCase(subtype)) {
+		if ("printer".equalsIgnoreCase(subtype)) {
+			serviceNowType = "Printer";
+		} else if ("unix".equalsIgnoreCase(subtype)) {
 			serviceNowType = "Server";
 		} else if ("windows".equalsIgnoreCase(subtype)) {
 			serviceNowType = "Server";
