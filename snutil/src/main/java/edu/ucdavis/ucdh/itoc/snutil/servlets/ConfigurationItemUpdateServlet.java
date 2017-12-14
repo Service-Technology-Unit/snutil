@@ -464,7 +464,7 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 		} else {
 			name = name.substring(0, name.indexOf("."));
 		}
-		if (name.length() > 3 && name.indexOf("_") > name.length() - 3) {
+		if (name.length() > 3 && name.indexOf("_") > 0) {
 			name = name.substring(0, name.indexOf("_"));
 		}
 		return name.toUpperCase();
