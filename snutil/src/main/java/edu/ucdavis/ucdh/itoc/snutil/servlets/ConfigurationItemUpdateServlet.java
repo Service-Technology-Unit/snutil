@@ -76,11 +76,12 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 
 		String action = (String) details.get("action");
 		String type = req.getParameter("type");
-		String subtype = req.getParameter("subtype");
+//		String subtype = req.getParameter("subtype");
 		details.put("type", type);
 		String sysId = null;
-		if ("computer".equalsIgnoreCase(type) ||
-				("officeelectronics".equalsIgnoreCase(type) && "Printer".equalsIgnoreCase(subtype))) {
+		if ("computer".equalsIgnoreCase(type)) {
+//		if ("computer".equalsIgnoreCase(type) ||
+//				("officeelectronics".equalsIgnoreCase(type) && "Printer".equalsIgnoreCase(subtype))) {
 			JSONObject newCI = buildCIFromRequest(req, details);
 			details.put("newData", newCI);
 			String name = (String) newCI.get("name");
