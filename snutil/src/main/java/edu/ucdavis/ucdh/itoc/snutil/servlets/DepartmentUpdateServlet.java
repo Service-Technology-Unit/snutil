@@ -133,7 +133,7 @@ public class DepartmentUpdateServlet extends SubscriberServlet {
 			if (rc != 200) {
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when fetching department data for ID " + id + ": " + rc);
-					eventService.logEvent(new Event("ServletError", "Department fetch error", "Invalid HTTP Response Code returned when fetching department data for ID " + id + ": " + rc, details));
+					eventService.logEvent(new Event((String) details.get("id"), "Department fetch error", "Invalid HTTP Response Code returned when fetching department data for ID " + id + ": " + rc, details));
 				}
 			}
 			JSONObject result = (JSONObject) JSONValue.parse(resp);
@@ -150,7 +150,7 @@ public class DepartmentUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for department with ID " + id + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "Department fetch exception", "Exception encountered searching for department with ID " + id + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Department fetch exception", "Exception encountered searching for department with ID " + id + ": " + e, details, e));
 		}
 
 		return department;
@@ -186,7 +186,7 @@ public class DepartmentUpdateServlet extends SubscriberServlet {
 	 *
 	 * @param newDepartment the new data for this department
 	 * @return the response
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
 	private String insertServiceNowDepartment(JSONObject newDepartment) {
@@ -194,8 +194,8 @@ public class DepartmentUpdateServlet extends SubscriberServlet {
 
 		if (log.isDebugEnabled()) {
 			log.debug("Inserting department " + newDepartment.get("employee_number"));
-		}		
-		
+		}
+
 		// create HttpPost
 		String url = serviceNowServer + UPDATE_URL;
 		HttpPost post = new HttpPost(url);
@@ -273,7 +273,7 @@ public class DepartmentUpdateServlet extends SubscriberServlet {
 	 * @param newDepartment the new data for this department
 	 * @param sysId the existing department's ServiceNow sys_id
 	 * @return the response
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
 	private String updateServiceNowDepartment(JSONObject newDepartment, JSONObject oldDepartment) {
@@ -281,8 +281,8 @@ public class DepartmentUpdateServlet extends SubscriberServlet {
 
 		if (log.isDebugEnabled()) {
 			log.debug("Updating department " + newDepartment.get("id"));
-		}		
-		
+		}
+
 		// create HttpPut
 		String sysId = (String) ((JSONObject) oldDepartment.get("sys_id")).get("value");
 		String url = serviceNowServer + UPDATE_URL + "/" + sysId;
@@ -491,7 +491,7 @@ public class DepartmentUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_id for ID " + id + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "Department sys_id fetch exception", "Exception encountered searching for sys_id for ID " + id + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Department sys_id fetch exception", "Exception encountered searching for sys_id for ID " + id + ": " + e, details, e));
 		}
 
 		return sysId;
@@ -551,7 +551,7 @@ public class DepartmentUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_id for " + field + " " + value + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", field + " fetch exception", "Exception encountered searching for sys_id for " + field + " " + value + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), field + " fetch exception", "Exception encountered searching for sys_id for " + field + " " + value + ": " + e, details, e));
 		}
 
 		return sysId;

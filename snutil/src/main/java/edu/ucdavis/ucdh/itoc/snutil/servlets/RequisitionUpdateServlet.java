@@ -191,7 +191,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			if (rc != 200) {
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "PO fetch error", "Invalid HTTP Response Code returned when fetching PO #" + id + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "PO fetch error", "Invalid HTTP Response Code returned when fetching PO #" + id + ": " + rc, details));
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when fetching PO #" + id + ": " + rc);
 				}
@@ -209,7 +209,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for PO #" + id + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "PO fetch exception", "Exception encountered searching for PO #" + id + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "PO fetch exception", "Exception encountered searching for PO #" + id + ": " + e, details, e));
 		}
 
 		return po;
@@ -253,7 +253,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			if (rc != 200) {
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "PO line fetch error", "Invalid HTTP Response Code returned when fetching PO with sys_id " + sys_id + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "PO line fetch error", "Invalid HTTP Response Code returned when fetching PO with sys_id " + sys_id + ": " + rc, details));
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when fetching lines for POwith sys_id " + sys_id + ": " + rc);
 				}
@@ -273,7 +273,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for PO with sys_id " + sys_id + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "PO Line fetch exception", "Exception encountered searching for PO with sys_id " + sys_id + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "PO Line fetch exception", "Exception encountered searching for PO with sys_id " + sys_id + ": " + e, details, e));
 		}
 
 		return po;
@@ -439,11 +439,11 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 				}
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "PO insert error", "Invalid HTTP Response Code returned when inserting new PO: " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "PO insert error", "Invalid HTTP Response Code returned when inserting new PO: " + rc, details));
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to insert new PO " + newPO.get("name") + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "PO insert exception", "Exception occured when attempting to insert new PO " + newPO.get("name") + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "PO insert exception", "Exception occured when attempting to insert new PO " + newPO.get("name") + ": " + e, details, e));
 			response = "2;Unable to insert PO";
 		}
 
@@ -552,7 +552,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when updating PO with sys_id " + sysId + ": " + rc);
 				}
-				eventService.logEvent(new Event("ServletError", "PO update error", "Invalid HTTP Response Code returned when updating PO with sys_id " + sysId + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "PO update error", "Invalid HTTP Response Code returned when updating PO with sys_id " + sysId + ": " + rc, details));
 			}
 			if (log.isDebugEnabled()) {
 				String jsonRespString = "";
@@ -565,7 +565,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to update PO " + newPO.get("name") + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "PO update exception", "Exception occured when attempting to update PO " + newPO.get("name") + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "PO update exception", "Exception occured when attempting to update PO " + newPO.get("name") + ": " + e, details, e));
 			response = "2;Unable to update PO";
 		}
 
@@ -708,11 +708,11 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 				}
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "PO Line insert error", "Invalid HTTP Response Code returned when inserting new PO Line: " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "PO Line insert error", "Invalid HTTP Response Code returned when inserting new PO Line: " + rc, details));
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to insert new PO Line: " + e, e);
-			eventService.logEvent(new Event("ServletError", "PO Line insert exception", "Exception occured when attempting to insert new PO Line: " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "PO Line insert exception", "Exception occured when attempting to insert new PO Line: " + e, details, e));
 		}
 
 		return success;
@@ -789,11 +789,11 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 				}
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "PO Line update error", "Invalid HTTP Response Code returned when updating PO Line: " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "PO Line update error", "Invalid HTTP Response Code returned when updating PO Line: " + rc, details));
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to update Line: " + e, e);
-			eventService.logEvent(new Event("ServletError", "PO Line update exception", "Exception occured when attempting to update PO Line: " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "PO Line update exception", "Exception occured when attempting to update PO Line: " + e, details, e));
 		}
 
 		return success;
@@ -854,11 +854,11 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 				}
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "PO Line delete error", "Invalid HTTP Response Code returned when deleting PO Line: " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "PO Line delete error", "Invalid HTTP Response Code returned when deleting PO Line: " + rc, details));
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to delete PO Line: " + e, e);
-			eventService.logEvent(new Event("ServletError", "PO Line delete exception", "Exception occured when attempting to delete PO Line: " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "PO Line delete exception", "Exception occured when attempting to delete PO Line: " + e, details, e));
 		}
 
 		return success;
@@ -973,7 +973,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to fetch lines for PO #" + id + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "PO line fetch exception", "Exception occured when attempting to fetch lines for PO #" + id + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "PO line fetch exception", "Exception occured when attempting to fetch lines for PO #" + id + ": " + e, details, e));
 		} finally {
 			if (rs != null) {
 				try {
@@ -1011,7 +1011,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 			if (StringUtils.isEmpty(buyerSysId)) {
 				log.warn("Unable to translate Eclipsys Buyer #" + originalValue);
-				eventService.logEvent(new Event("ServletError", "Eclipsys Buyer Translation Error", "Unable to translate Eclipsys Buyer #" + originalValue, details));
+				eventService.logEvent(new Event((String) details.get("id"), "Eclipsys Buyer Translation Error", "Unable to translate Eclipsys Buyer #" + originalValue, details));
 			}
 		}
 
@@ -1038,7 +1038,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 			if (StringUtils.isEmpty(locationSysId)) {
 				log.warn("Unable to translate Eclipsys Location " + originalValue);
-				eventService.logEvent(new Event("ServletError", "Eclipsys Location Translation Error", "Unable to translate Eclipsys Locaation " + originalValue, details));
+				eventService.logEvent(new Event((String) details.get("id"), "Eclipsys Location Translation Error", "Unable to translate Eclipsys Locaation " + originalValue, details));
 			}
 		}
 
@@ -1142,7 +1142,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to fetch Vendor " + vendorId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "Vendor fetch exception", "Exception occured when attempting to fetch vendor " + vendorId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Vendor fetch exception", "Exception occured when attempting to fetch vendor " + vendorId + ": " + e, details, e));
 		} finally {
 			if (rs != null) {
 				try {
@@ -1240,11 +1240,11 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 				}
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "Vendor insert error", "Invalid HTTP Response Code returned when inserting new Vendor: " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "Vendor insert error", "Invalid HTTP Response Code returned when inserting new Vendor: " + rc, details));
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to insert new vendor " + vendor.get("name") + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "Vendor insert exception", "Exception occured when attempting to insert new Vendor " + vendor.get("name") + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Vendor insert exception", "Exception occured when attempting to insert new Vendor " + vendor.get("name") + ": " + e, details, e));
 		}
 
 		return sys_id;
@@ -1299,7 +1299,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to fetch Contract " + contractId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "Contract fetch exception", "Exception occured when attempting to fetch contract " + contractId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Contract fetch exception", "Exception occured when attempting to fetch contract " + contractId + ": " + e, details, e));
 		} finally {
 			if (rs != null) {
 				try {
@@ -1397,11 +1397,11 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 				}
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "Contract insert error", "Invalid HTTP Response Code returned when inserting new Contract: " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "Contract insert error", "Invalid HTTP Response Code returned when inserting new Contract: " + rc, details));
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to insert new contract " + contract.get("name") + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "Contract insert exception", "Exception occured when attempting to insert new Contract " + contract.get("name") + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Contract insert exception", "Exception occured when attempting to insert new Contract " + contract.get("name") + ": " + e, details, e));
 		}
 
 		return sys_id;
@@ -1461,7 +1461,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to fetch IAM ID for Eclipsys Buyer " + id + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "Buyer IAM ID fetch exception", "Exception occured when attempting to fetch IAM ID for Eclipsys Buyer " + id + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Buyer IAM ID fetch exception", "Exception occured when attempting to fetch IAM ID for Eclipsys Buyer " + id + ": " + e, details, e));
 		} finally {
 			if (rs != null) {
 				try {
@@ -1543,7 +1543,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when attempting to fetch FD&C Location ID for Eclipsys Location ID " + id + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "PO line fetch exception", "Exception occured when attempting to fetch FD&C Location ID for Eclipsys Location ID " + id + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "PO line fetch exception", "Exception occured when attempting to fetch FD&C Location ID for Eclipsys Location ID " + id + ": " + e, details, e));
 		} finally {
 			if (rs != null) {
 				try {
@@ -1689,7 +1689,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_id for User ID " + userId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "User sys_id fetch exception", "Exception encountered searching for sys_id for User ID " + userId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "User sys_id fetch exception", "Exception encountered searching for sys_id for User ID " + userId + ": " + e, details, e));
 		}
 
 		return sysId;
@@ -1756,7 +1756,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_id for " + field + " " + value + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", field + " fetch exception", "Exception encountered searching for sys_id for " + field + " " + value + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), field + " fetch exception", "Exception encountered searching for sys_id for " + field + " " + value + ": " + e, details, e));
 		}
 
 		return sysId;
@@ -1809,7 +1809,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for ids for all IT departments: " + e, e);
-			eventService.logEvent(new Event("ServletError", "id fetch exception", "Exception encountered searching for ids for all IT departments: " + e, null, e));
+			eventService.logEvent(new Event("", "id fetch exception", "Exception encountered searching for ids for all IT departments: " + e, null, e));
 		}
 	}
 
@@ -1909,7 +1909,7 @@ public class RequisitionUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_id for Eclipsys: " + e, e);
-			eventService.logEvent(new Event("ServletError", "Source/Target System fetch exception", "Exception encountered searching for sys_id for Eclipsys: " + e, null, e));
+			eventService.logEvent(new Event("", "Source/Target System fetch exception", "Exception encountered searching for sys_id for Eclipsys: " + e, null, e));
 		}
 
 		return sysId;

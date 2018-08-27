@@ -228,7 +228,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			if (rc != 200) {
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "User fetch error", "Invalid HTTP Response Code returned when fetching user data for IAM ID " + iamId + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching user data for IAM ID " + iamId + ": " + rc, details));
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when fetching user data for IAM ID " + iamId + ": " + rc);
 				}
@@ -246,7 +246,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for user with IAM ID " + iamId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "User fetch exception", "Exception encountered searching for user with IAM ID " + iamId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "User fetch exception", "Exception encountered searching for user with IAM ID " + iamId + ": " + e, details, e));
 		}
 
 		return user;
@@ -289,7 +289,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			if (rc != 200) {
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "Live Profile fetch error", "Invalid HTTP Response Code returned when fetching Live Profile data for sys_id " + sysId + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "Live Profile fetch error", "Invalid HTTP Response Code returned when fetching Live Profile data for sys_id " + sysId + ": " + rc, details));
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when fetching Live Profile data for sys_id " + sysId + ": " + rc);
 				}
@@ -322,7 +322,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for Live Profile with sys_id " + sysId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "Live Profile fetch exception", "Exception encountered searching for Live Profile with sys_id " + sysId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Live Profile fetch exception", "Exception encountered searching for Live Profile with sys_id " + sysId + ": " + e, details, e));
 		}
 
 		return liveProfileSysId;
@@ -435,11 +435,11 @@ public class UserUpdateServlet extends SubscriberServlet {
 				}
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "User insert error", "Invalid HTTP Response Code returned when inserting new user: " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "User insert error", "Invalid HTTP Response Code returned when inserting new user: " + rc, details));
 			}
 		} catch (Exception e) {
 			log.debug("Exception occured when attempting to insert new user " + newPerson.get("employee_number") + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "User insert exception", "Exception occured when attempting to insert new user " + newPerson.get("employee_number") + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "User insert exception", "Exception occured when attempting to insert new user " + newPerson.get("employee_number") + ": " + e, details, e));
 			response = "2;Unable to insert user";
 		}
 
@@ -506,7 +506,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when updating sys_id " + sysId + ": " + rc);
 				}
-				eventService.logEvent(new Event("ServletError", "User update error", "Invalid HTTP Response Code returned when updating sys_id " + sysId + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "User update error", "Invalid HTTP Response Code returned when updating sys_id " + sysId + ": " + rc, details));
 			}
 			if (log.isDebugEnabled()) {
 				String jsonRespString = "";
@@ -519,7 +519,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.debug("Exception occured when attempting to update user " + newPerson.get("employee_number") + ": " + e);
-			eventService.logEvent(new Event("ServletError", "User update exception", "Exception occured when attempting to update user " + newPerson.get("employee_number") + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "User update exception", "Exception occured when attempting to update user " + newPerson.get("employee_number") + ": " + e, details, e));
 			response = "2;Unable to update user";
 		}
 
@@ -608,7 +608,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 					if (log.isDebugEnabled()) {
 						log.debug("Invalid HTTP Response Code returned when attempting to add user " + sysId + " to IT Staff group: " + rc);
 					}
-					eventService.logEvent(new Event("ServletError", "User update error", "Invalid HTTP Response Code returned when attempting to add user " + sysId + " to IT Staff group: " + rc, details));
+					eventService.logEvent(new Event((String) details.get("id"), "User update error", "Invalid HTTP Response Code returned when attempting to add user " + sysId + " to IT Staff group: " + rc, details));
 				}
 				if (log.isDebugEnabled()) {
 					String jsonRespString = "";
@@ -621,7 +621,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 				}
 			} catch (Exception e) {
 				log.debug("Exception occured when attempting to add user " + sysId + " to IT Staff group " + e);
-				eventService.logEvent(new Event("ServletError", "User update exception", "Exception occured when attempting to add user " + sysId + " to IT Staff group: " + e, details, e));
+				eventService.logEvent(new Event((String) details.get("id"), "User update exception", "Exception occured when attempting to add user " + sysId + " to IT Staff group: " + e, details, e));
 			}
 		}
 
@@ -670,7 +670,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 					if (log.isDebugEnabled()) {
 						log.debug("Invalid HTTP Response Code returned when attempting to remove user " + sysId + " from IT Staff group: " + rc);
 					}
-					eventService.logEvent(new Event("ServletError", "User update error", "Invalid HTTP Response Code returned when attempting to remove user " + sysId + " from IT Staff group: " + rc, details));
+					eventService.logEvent(new Event((String) details.get("id"), "User update error", "Invalid HTTP Response Code returned when attempting to remove user " + sysId + " from IT Staff group: " + rc, details));
 				}
 				if (log.isDebugEnabled()) {
 					String jsonRespString = "";
@@ -683,7 +683,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 				}
 			} catch (Exception e) {
 				log.debug("Exception occured when attempting to remove user " + sysId + " from IT Staff group " + e);
-				eventService.logEvent(new Event("ServletError", "User update exception", "Exception occured when attempting to remove user " + sysId + " from IT Staff group: " + e, details, e));
+				eventService.logEvent(new Event((String) details.get("id"), "User update exception", "Exception occured when attempting to remove user " + sysId + " from IT Staff group: " + e, details, e));
 			}
 		} else {
 			if (log.isDebugEnabled()) {
@@ -752,7 +752,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_id for IT Staff group membership for user " + userSysId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "User sys_id fetch exception", "Exception encountered searching for sys_id for IT Staff group membership for user " + userSysId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "User sys_id fetch exception", "Exception encountered searching for sys_id for IT Staff group membership for user " + userSysId + ": " + e, details, e));
 		}
 
 		return sysId;
@@ -931,7 +931,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_id for IAM ID " + iamId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "User sys_id fetch exception", "Exception encountered searching for sys_id for IAM ID " + iamId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "User sys_id fetch exception", "Exception encountered searching for sys_id for IAM ID " + iamId + ": " + e, details, e));
 		}
 
 		return sysId;
@@ -992,7 +992,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_id for " + field + " " + value + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", field + " fetch exception", "Exception encountered searching for sys_id for " + field + " " + value + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), field + " fetch exception", "Exception encountered searching for sys_id for " + field + " " + value + ": " + e, details, e));
 		}
 
 		return sysId;
@@ -1052,7 +1052,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_ids for all IT departments: " + e, e);
-			eventService.logEvent(new Event("ServletError", "sys_id fetch exception", "Exception encountered searching for sys_ids for all IT departments: " + e, null, e));
+			eventService.logEvent(new Event("[none]", "sys_id fetch exception", "Exception encountered searching for sys_ids for all IT departments: " + e, null, e));
 		}
 
 		return sysId;
@@ -1130,7 +1130,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered accessing photoId: " + e.getMessage(), e);
-			eventService.logEvent(new Event("ServletError", "Photo ID fetch exception", "Exception encountered accessing photoId: " + e.getMessage(), details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Photo ID fetch exception", "Exception encountered accessing photoId: " + e.getMessage(), details, e));
 		} finally {
 			if (rs != null) {
 				try {
@@ -1189,7 +1189,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (SQLException e) {
 			log.error("Exception encountered processing image data: " + e.getMessage(), e);
-			eventService.logEvent(new Event("ServletError", "Photo processing exception", "Exception encountered processing image data: " + e.getMessage(), details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Photo processing exception", "Exception encountered processing image data: " + e.getMessage(), details, e));
 		} finally {
 			if (rs != null) {
 				try {
@@ -1274,7 +1274,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 				outcome = "; unable to add user photo due to error";
 				details.put("responseCode", rc + "");
 				details.put("responseBody", json);
-				eventService.logEvent(new Event("ServletError", "Photo posting error", "Invalid HTTP Response Code returned when posting photo for sys_id " + sysId + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "Photo posting error", "Invalid HTTP Response Code returned when posting photo for sys_id " + sysId + ": " + rc, details));
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when posting photo for sys_id " + sysId + ": " + rc);
 				}
@@ -1288,7 +1288,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 						log.error("Error attempting to add user photo: " + error);
 						details.put("responseCode", rc + "");
 						details.put("responseBody", json);
-						eventService.logEvent(new Event("ServletError", "Photo posting error", "Error attempting to add user photo: " + error, details));
+						eventService.logEvent(new Event((String) details.get("id"), "Photo posting error", "Error attempting to add user photo: " + error, details));
 					} else {
 						if (log.isDebugEnabled()) {
 							log.debug(result.get("payload"));
@@ -1300,14 +1300,14 @@ public class UserUpdateServlet extends SubscriberServlet {
 							log.error("Unable to locate attachment for user photo for user " + sysId);
 							details.put("responseCode", rc + "");
 							details.put("responseBody", json);
-							eventService.logEvent(new Event("ServletError", "Photo posting error", "Unable to locate attachment for user photo for user " + sysId, details));
+							eventService.logEvent(new Event((String) details.get("id"), "Photo posting error", "Unable to locate attachment for user photo for user " + sysId, details));
 						}
 					}
 				}
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when posting photo for sys_id " + sysId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "Photo posting exception", "Exception occured when posting photo for sys_id " + sysId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Photo posting exception", "Exception occured when posting photo for sys_id " + sysId + ": " + e, details, e));
 			outcome = "; unable to add user photo due to exception";
 		}
 
@@ -1377,7 +1377,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 				outcome = "; unable to add user's Live Profile photo due to error";
 				details.put("responseCode", rc + "");
 				details.put("responseBody", json);
-				eventService.logEvent(new Event("ServletError", "Photo posting error", "Invalid HTTP Response Code returned when posting Live Profile photo for sys_id " + sysId + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "Photo posting error", "Invalid HTTP Response Code returned when posting Live Profile photo for sys_id " + sysId + ": " + rc, details));
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when posting Live Profile photo for sys_id " + sysId + ": " + rc);
 				}
@@ -1391,7 +1391,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 						log.error("Error attempting to add user's Live Profile photo: " + error);
 						details.put("responseCode", rc + "");
 						details.put("responseBody", json);
-						eventService.logEvent(new Event("ServletError", "Photo posting error", "Error attempting to add user's Live Profile photo: " + error, details));
+						eventService.logEvent(new Event((String) details.get("id"), "Photo posting error", "Error attempting to add user's Live Profile photo: " + error, details));
 					} else {
 						livePhotoSysId = fetchLiveProfilePhotoSysId(liveProfileSysId, details);
 						if (log.isDebugEnabled()) {
@@ -1403,7 +1403,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when posting Live Profile photo for sys_id " + sysId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "Photo posting exception", "Exception occured when posting Live Profile photo for sys_id " + sysId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Photo posting exception", "Exception occured when posting Live Profile photo for sys_id " + sysId + ": " + e, details, e));
 			outcome = "; unable to add user's Live Profile photo due to exception";
 		}
 		if (StringUtils.isNotEmpty(livePhotoSysId)) {
@@ -1457,7 +1457,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when updating attachment " + attachmentSysId + " for table " + table + ": " + rc);
 				}
-				eventService.logEvent(new Event("ServletError", "Attachment update error", "Invalid HTTP Response Code returned when updating attachment " + attachmentSysId + " for table " + table + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "Attachment update error", "Invalid HTTP Response Code returned when updating attachment " + attachmentSysId + " for table " + table + ": " + rc, details));
 			}
 			if (log.isDebugEnabled()) {
 				String jsonRespString = "";
@@ -1470,7 +1470,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.debug("Exception occured when attempting to update attachment " + attachmentSysId + " for table " + table + ": " + e);
-			eventService.logEvent(new Event("ServletError", "Attachment update exception", "Exception occured when attempting to update attachment " + attachmentSysId + " for table " + table + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Attachment update exception", "Exception occured when attempting to update attachment " + attachmentSysId + " for table " + table + ": " + e, details, e));
 		}
 	}
 
@@ -1511,7 +1511,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			if (rc != 200) {
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "User fetch error", "Invalid HTTP Response Code returned when fetching user photo sys_id for user " + sysId + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching user photo sys_id for user " + sysId + ": " + rc, details));
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when fetching user photo sys_id for user " + sysId + ": " + rc);
 				}
@@ -1535,7 +1535,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for user photo sys_id for user " + sysId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "User fetch exception", "Exception encountered searching for user photo sys_id for user " + sysId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "User fetch exception", "Exception encountered searching for user photo sys_id for user " + sysId + ": " + e, details, e));
 		}
 
 		return userPhotoSysId;
@@ -1578,7 +1578,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			if (rc != 200) {
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "User fetch error", "Invalid HTTP Response Code returned when fetching Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + rc, details));
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when fetching Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + rc);
 				}
@@ -1602,7 +1602,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "User fetch exception", "Exception encountered searching for Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "User fetch exception", "Exception encountered searching for Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + e, details, e));
 		}
 
 		return livePhotoSysId;
@@ -1679,7 +1679,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 						log.error("Error attempting to add user's Live Profile thumbnail: " + error);
 						details.put("responseCode", rc + "");
 						details.put("responseBody", json);
-						eventService.logEvent(new Event("ServletError", "Thumbnail posting error", "Error attempting to add user's Live Profile thumbnail: " + error, details));
+						eventService.logEvent(new Event((String) details.get("id"), "Thumbnail posting error", "Error attempting to add user's Live Profile thumbnail: " + error, details));
 					} else {
 						if (log.isDebugEnabled()) {
 							log.debug(result.get("payload"));
@@ -1689,7 +1689,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception occured when posting thumbnail for Live Profile photo " + livePhotoSysId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "Thumbnail posting exception", "Exception occured when posting thumbnail for Live Profile photo " + livePhotoSysId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Thumbnail posting exception", "Exception occured when posting thumbnail for Live Profile photo " + livePhotoSysId + ": " + e, details, e));
 			outcome = "; unable to add user's Live Profile thumbnail due to exception";
 		}
 
@@ -1728,7 +1728,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			base64ThumbData = new String(Base64.getMimeEncoder().encode(thumbData));
 		} catch (Exception e) {
 			log.error("Exception occured when creating thumbnail image fron user photo: " + e, e);
-			eventService.logEvent(new Event("ServletError", "Thumbnail posting exception", "Exception occured when creating thumbnail image fron user photo: " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Thumbnail posting exception", "Exception occured when creating thumbnail image fron user photo: " + e, details, e));
 		}
 
 		return base64ThumbData;
@@ -1806,7 +1806,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.debug("Exception occured when attempting to insert Live Profile for " + name + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "User insert exception", "Exception occured when attempting to insert Live Profile for " + name + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "User insert exception", "Exception occured when attempting to insert Live Profile for " + name + ": " + e, details, e));
 		}
 
 		return liveProfileSysId;

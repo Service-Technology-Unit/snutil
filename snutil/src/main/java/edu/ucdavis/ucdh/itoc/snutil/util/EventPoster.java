@@ -2,6 +2,7 @@ package edu.ucdavis.ucdh.itoc.snutil.util;
 
 import java.util.Random;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
@@ -66,7 +67,7 @@ public class EventPoster extends Thread {
 	@SuppressWarnings("unchecked")
 	private int post() {
 		int rc = 0;
-		
+
 		// create HttpPost
 		HttpPost post = new HttpPost(url);
 		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(user, password), "UTF-8", false));
@@ -76,6 +77,9 @@ public class EventPoster extends Thread {
 		// build JSON object to post
 		JSONObject eventData = new JSONObject();
 		eventData.put("source", source);
+		if (StringUtils.isNotEmpty(event.getSource())) {
+			eventData.put("source", event.getSource());
+		}
 		eventData.put("event_class", sourceInstance);
 		eventData.put("resource", event.getResource());
 		eventData.put("node", node);

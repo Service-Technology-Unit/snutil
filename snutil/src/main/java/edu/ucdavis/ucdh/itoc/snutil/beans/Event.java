@@ -22,6 +22,7 @@ public class Event implements Serializable {
 	public static final String STATE_ERROR = "Error";
 	public static final String RESOLUTION_NEW = "New";
 	public static final String RESOLUTION_CLOSING = "Closing";
+	private String source = null;
 	private String resource = null;
 	private String metricName = null;
 	private String messageKey = null;
@@ -59,13 +60,14 @@ public class Event implements Serializable {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Event(String metricName, String messageKey, String description, String severity, String resolutionState, JSONObject additionalInfo, Throwable throwable) throws IllegalArgumentException {
+	public Event(String resource, String messageKey, String description, String severity, String resolutionState, JSONObject additionalInfo, Throwable throwable) throws IllegalArgumentException {
 		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
 		if (getClass().getName().equals(caller.getClassName())) {
 			caller =  Thread.currentThread().getStackTrace()[3];
 		}
-		this.resource = caller.getClassName() + "." + caller.getMethodName() + " (line #" + caller.getLineNumber() + ")";
-		this.metricName = metricName;
+		this.source = caller.getClassName();
+		this.resource = resource;
+		this.metricName = caller.getClassName() + "." + caller.getMethodName() + " (line #" + caller.getLineNumber() + ")";
 		this.messageKey = messageKey;
 		this.severity = severity;
 		if (StringUtils.isEmpty(this.severity)) {
@@ -88,7 +90,7 @@ public class Event implements Serializable {
 
 	/**
 	 * <p>Returns a <code>JSONObject</code> containing the details of the exception.</p>
-	 * 
+	 *
 	 * @param throwable the exception to JSONify
 	 * @return a <code>JSONObject</code> containing the details of the exception
 	 */
@@ -108,7 +110,7 @@ public class Event implements Serializable {
 
 	/**
 	 * <p>Returns a String representation of the StackTrace of the exception.</p>
-	 * 
+	 *
 	 * @param throwable the exception
 	 * @return a String representation of the StackTrace of the exception
 	 */
@@ -117,6 +119,13 @@ public class Event implements Serializable {
 		PrintWriter printWriter = new PrintWriter(result);
 		throwable.printStackTrace(printWriter);
 		return result.toString();
+	}
+
+	/**
+	 * @return the source
+	 */
+	public String getSource() {
+		return source;
 	}
 
 	/**

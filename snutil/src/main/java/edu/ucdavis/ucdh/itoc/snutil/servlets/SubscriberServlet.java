@@ -71,7 +71,7 @@ public abstract class SubscriberServlet extends HttpServlet {
 	 *
 	 * @param req the <code>HttpServletRequest</code> object
 	 * @param res the <code>HttpServletResponse</code> object
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
 		sendError(req, res, HttpServletResponse.SC_METHOD_NOT_ALLOWED, "The GET method is not allowed for this URL", null);
@@ -82,7 +82,7 @@ public abstract class SubscriberServlet extends HttpServlet {
 	 *
 	 * @param req the <code>HttpServletRequest</code> object
 	 * @param res the <code>HttpServletResponse</code> object
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
 	public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
@@ -186,7 +186,7 @@ public abstract class SubscriberServlet extends HttpServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_id for UC Davis Health: " + e, e);
-			eventService.logEvent(new Event("ServletError", "Company fetch exception", "Exception encountered searching for sys_id for UC Davis Health: " + e, null, e));
+			eventService.logEvent(new Event("", "Company fetch exception", "Exception encountered searching for sys_id for UC Davis Health: " + e, null, e));
 		}
 
 		return sysId;
@@ -258,7 +258,7 @@ public abstract class SubscriberServlet extends HttpServlet {
 		}
 
 		// log event
-		eventService.logEvent(new Event("ServletError", "HTTP response", "Sending error " + errorCode + "; message=" + errorMessage, details, throwable));
+		eventService.logEvent(new Event((String) details.get("id"), "HTTP response", "Sending error " + errorCode + "; message=" + errorMessage, details, throwable));
 
 		// send error
 		res.setContentType("text/plain;charset=UTF-8");

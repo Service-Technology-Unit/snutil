@@ -126,7 +126,7 @@ public class LocationUpdateServlet extends SubscriberServlet {
 			if (rc != 200) {
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when fetching location data for ID " + id + ": " + rc);
-					eventService.logEvent(new Event("ServletError", "Location fetch error", "Invalid HTTP Response Code returned when fetching location data for ID " + id + ": " + rc, details));
+					eventService.logEvent(new Event((String) details.get("id"), "Location fetch error", "Invalid HTTP Response Code returned when fetching location data for ID " + id + ": " + rc, details));
 				}
 			}
 			JSONObject result = (JSONObject) JSONValue.parse(resp);
@@ -143,7 +143,7 @@ public class LocationUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for location with ID " + id + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "Location fetch exception", "Exception encountered searching for location with ID " + id + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "Location fetch exception", "Exception encountered searching for location with ID " + id + ": " + e, details, e));
 		}
 
 		return location;
@@ -175,7 +175,7 @@ public class LocationUpdateServlet extends SubscriberServlet {
 	 *
 	 * @param newLocation the new data for this location
 	 * @return the response
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
 	private String insertServiceNowLocation(JSONObject newLocation) {
@@ -183,8 +183,8 @@ public class LocationUpdateServlet extends SubscriberServlet {
 
 		if (log.isDebugEnabled()) {
 			log.debug("Inserting location " + newLocation.get("employee_number"));
-		}		
-		
+		}
+
 		// create HttpPost
 		String url = serviceNowServer + UPDATE_URL;
 		HttpPost post = new HttpPost(url);
@@ -262,7 +262,7 @@ public class LocationUpdateServlet extends SubscriberServlet {
 	 * @param newLocation the new data for this location
 	 * @param sysId the existing location's ServiceNow sys_id
 	 * @return the response
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
 	private String updateServiceNowLocation(JSONObject newLocation, JSONObject oldLocation) {
@@ -270,8 +270,8 @@ public class LocationUpdateServlet extends SubscriberServlet {
 
 		if (log.isDebugEnabled()) {
 			log.debug("Updating location " + newLocation.get("id"));
-		}		
-		
+		}
+
 		// create HttpPut
 		String sysId = (String) ((JSONObject) oldLocation.get("sys_id")).get("value");
 		String url = serviceNowServer + UPDATE_URL + "/" + sysId;
@@ -446,7 +446,7 @@ public class LocationUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_id for " + field + " " + value + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", field + " fetch exception", "Exception encountered searching for sys_id for " + field + " " + value + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), field + " fetch exception", "Exception encountered searching for sys_id for " + field + " " + value + ": " + e, details, e));
 		}
 
 		return data;

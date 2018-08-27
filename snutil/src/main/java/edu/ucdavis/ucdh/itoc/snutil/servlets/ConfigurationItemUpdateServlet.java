@@ -157,7 +157,7 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 			if (rc != 200) {
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "CI fetch error", "Invalid HTTP Response Code returned when fetching user data for CI " + name + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "CI fetch error", "Invalid HTTP Response Code returned when fetching user data for CI " + name + ": " + rc, details));
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when fetching user data for CI " + name + ": " + rc);
 				}
@@ -175,7 +175,7 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for CI with name " + name + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "User fetch exception", "Exception encountered searching for CI with name " + name + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "User fetch exception", "Exception encountered searching for CI with name " + name + ": " + e, details, e));
 		}
 
 		return ci;
@@ -216,8 +216,8 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 		String serviceNowType = (String) newCI.get("serviceNowType");
 		if (log.isDebugEnabled()) {
 			log.debug("Inserting CI " + newCI.get("name") + " of type " + serviceNowType);
-		}		
-		
+		}
+
 		// create HttpPost
 		String url = serviceNowServer + UPDATE_PC_URL;
 		if ("server".equalsIgnoreCase(serviceNowType)) {
@@ -284,11 +284,11 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 				}
 				details.put("responseCode", rc + "");
 				details.put("responseBody", result);
-				eventService.logEvent(new Event("ServletError", "CI insert error", "Invalid HTTP Response Code returned when inserting new CI: " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "CI insert error", "Invalid HTTP Response Code returned when inserting new CI: " + rc, details));
 			}
 		} catch (Exception e) {
 			log.debug("Exception occured when attempting to insert new CI " + newCI.get("name") + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "CI insert exception", "Exception occured when attempting to insert new CI " + newCI.get("name") + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "CI insert exception", "Exception occured when attempting to insert new CI " + newCI.get("name") + ": " + e, details, e));
 			response = "2;Unable to insert CI";
 		}
 
@@ -310,8 +310,8 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 		String serviceNowType = (String) newCI.get("serviceNowType");
 		if (log.isDebugEnabled()) {
 			log.debug("Updating CI " + newCI.get("name") + " of type " + serviceNowType);
-		}		
-		
+		}
+
 		// create HttpPut
 		String url = serviceNowServer + UPDATE_PC_URL + "/" + sysId;
 		if ("server".equalsIgnoreCase(serviceNowType)) {
@@ -338,7 +338,7 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 					if ("mac_address".equalsIgnoreCase(field)) {
 						updateData.put(field, value);
 					}
-					
+
 				}
 			}
 		}
@@ -365,7 +365,7 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 				if (log.isDebugEnabled()) {
 					log.debug("Invalid HTTP Response Code returned when updating CI with sys_id " + sysId + ": " + rc);
 				}
-				eventService.logEvent(new Event("ServletError", "CI update error", "Invalid HTTP Response Code returned when updating CI with sys_id " + sysId + ": " + rc, details));
+				eventService.logEvent(new Event((String) details.get("id"), "CI update error", "Invalid HTTP Response Code returned when updating CI with sys_id " + sysId + ": " + rc, details));
 			}
 			if (log.isDebugEnabled()) {
 				String jsonRespString = "";
@@ -378,7 +378,7 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.debug("Exception occured when attempting to update CI " + newCI.get("name") + ": " + e);
-			eventService.logEvent(new Event("ServletError", "CI update exception", "Exception occured when attempting to update CI " + newCI.get("name") + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "CI update exception", "Exception occured when attempting to update CI " + newCI.get("name") + ": " + e, details, e));
 			response = "2;Unable to update CI";
 		}
 
@@ -487,7 +487,7 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
         } else if (name.startsWith("DR")) {
         	classification = "Disaster Recovery";
         }
-		
+
 		return classification;
 	}
 
@@ -684,7 +684,7 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_id for User ID " + userId + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", "User sys_id fetch exception", "Exception encountered searching for sys_id for User ID " + userId + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), "User sys_id fetch exception", "Exception encountered searching for sys_id for User ID " + userId + ": " + e, details, e));
 		}
 
 		return sysId;
@@ -751,7 +751,7 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for sys_id for " + field + " " + value + ": " + e, e);
-			eventService.logEvent(new Event("ServletError", field + " fetch exception", "Exception encountered searching for sys_id for " + field + " " + value + ": " + e, details, e));
+			eventService.logEvent(new Event((String) details.get("id"), field + " fetch exception", "Exception encountered searching for sys_id for " + field + " " + value + ": " + e, details, e));
 		}
 
 		return sysId;
