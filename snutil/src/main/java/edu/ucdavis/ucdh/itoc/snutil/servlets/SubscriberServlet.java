@@ -257,6 +257,11 @@ public abstract class SubscriberServlet extends HttpServlet {
 			log.debug("Sending error " + errorCode + "; message=" + errorMessage);
 		}
 
+		// verify details
+		if (details == null) {
+			details = new JSONObject();
+		}
+
 		// log event
 		eventService.logEvent(new Event((String) details.get("id"), "HTTP response", "Sending error " + errorCode + "; message=" + errorMessage, details, throwable));
 
