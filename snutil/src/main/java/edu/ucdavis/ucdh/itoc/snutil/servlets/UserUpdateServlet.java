@@ -10,8 +10,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -69,6 +72,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 	private static final String[] PROPERTY = {"active:isActive", "building:building", "city:city", "cost_center:deptId", "department:deptId", "deptName:deptName", "email:email", "employee_number:id", "first_name:firstName", "last_name:lastName", "location:locationCode", "manager:manager", "middle_name:middleName", "mobile_phone:cellNumber", "phone:phoneNumber", "state:state", "street:address", "title:title", "u_alternate_email:alternateEmail", "u_alternate_phones:alternatePhones", "u_banner_id:bannerId", "u_cube:cube", "u_end_date:endDate", "u_external_id:externalId", "u_floor:floor", "u_is_employee:isEmployee", "u_is_external:isExternal", "u_is_previous_ucdh_employee:isPreviousHsEmployee", "u_is_student:isStudent", "u_kerberos_id:kerberosId", "u_mothra_id:mothraId", "u_pager:pagerNumber", "u_pager_provider:pagerProvider", "u_pps_id:ppsId", "u_campus_pps_id:campusPpsId", "u_room:room", "u_start_date:startDate", "u_student_id:studentId", "u_supervisor:supervisor", "u_volunteer_id:volunteerId", "user_name:hsAdId", "zip:zip"};
 	private static final String[] BOOLEAN_PROPERTY = {"active", "u_is_employee", "u_is_external", "u_is_previous_ucdh_employee", "u_is_student"};
 	private static final String[] PERSON_PROPERTY = {"manager", "u_supervisor"};
+	private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 	private Map<String,String> fieldMap = new HashMap<String,String>();
 	private Map<String,String> referenceURL = new HashMap<String,String>();
 	private Map<String,Map<String,String>> referenceCache = new HashMap<String,Map<String,String>>();
@@ -136,7 +140,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 				if (personUnchanged(newPerson, oldPerson)) {
 					response = "1;No action taken -- no changes detected";
 				} else {
-					response = updateServiceNowUser(newPerson, sysId, details);
+					response = updateServiceNowUser(newPerson, oldPerson, sysId, action, details);
 				}
 			} else {
 				if (action.equalsIgnoreCase("delete")) {
@@ -388,7 +392,11 @@ public class UserUpdateServlet extends SubscriberServlet {
 			}
 		}
 		if (StringUtils.isEmpty((String) insertData.get("user_name"))) {
-			insertData.put("user_name", insertData.get("u_external_id"));
+			if (StringUtils.isEmpty((String) insertData.get("u_external_id"))) {
+				insertData.put("user_name", insertData.get("employee_number"));
+			} else {
+				insertData.put("user_name", insertData.get("u_external_id"));
+			}
 		}
 		if (log.isDebugEnabled()) {
 			log.debug("JSON object to POST: " + insertData.toJSONString());
@@ -455,7 +463,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 	 * @return the response
 	 */
 	@SuppressWarnings("unchecked")
-	private String updateServiceNowUser(JSONObject newPerson, String sysId, JSONObject details) {
+	private String updateServiceNowUser(JSONObject newPerson, JSONObject oldPerson, String sysId, String action, JSONObject details) {
 		String response = null;
 
 		if (log.isDebugEnabled()) {
@@ -471,14 +479,22 @@ public class UserUpdateServlet extends SubscriberServlet {
 
 		// build JSON to put
 		JSONObject updateData = new JSONObject();
-		Iterator<String> i = fieldMap.keySet().iterator();
-		while (i.hasNext()) {
-			String field = i.next();
-			if (!field.equals("deptName")) {
-				if ("true".equalsIgnoreCase((String) newPerson.get(field + "HasChanged"))) {
-					String value = (String) newPerson.get(field);
-					if (StringUtils.isNotEmpty(value)) {
-						updateData.put(field, value);
+		if (action.equalsIgnoreCase("delete")) {
+			updateData.put("active", "false");
+			updateData.put("user_name", newPerson.get("employee_number"));
+			if (StringUtils.isEmpty((String) oldPerson.get("u_end_date"))) {
+				updateData.put("u_end_date", df.format(new Date()));
+			}
+		} else {
+			Iterator<String> i = fieldMap.keySet().iterator();
+			while (i.hasNext()) {
+				String field = i.next();
+				if (!field.equals("deptName")) {
+					if ("true".equalsIgnoreCase((String) newPerson.get(field + "HasChanged"))) {
+						String value = (String) newPerson.get(field);
+						if (StringUtils.isNotEmpty(value)) {
+							updateData.put(field, value);
+						}
 					}
 				}
 			}
