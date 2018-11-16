@@ -63,7 +63,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import edu.ucdavis.ucdh.itoc.snutil.batch.util.SpringBatchJob;
-import edu.ucdavis.ucdh.itoc.snutil.util.EventService;
 import edu.ucdavis.ucdhs.isweb.core.utils.BatchJobService;
 import edu.ucdavis.ucdhs.isweb.core.utils.BatchJobServiceStatistic;
 
@@ -126,7 +125,6 @@ public class InitialUserLoad implements SpringBatchJob {
 	private DataSource ppsDataSource = null;
 	private DataSource badgeDataSource = null;
 	private DataSource portraitDataSource = null;
-	private EventService eventService = null;
 	private int recordsRead = 0;
 	private int adAccountsFound = 0;
 	private int recordsInserted = 0;
@@ -2087,12 +2085,5 @@ public class InitialUserLoad implements SpringBatchJob {
 	 */
 	public void setPortraitDataSource(DataSource portraitDataSource) {
 		this.portraitDataSource = portraitDataSource;
-	}
-
-	/**
-	 * @param eventService the eventService to set
-	 */
-	public void setEventService(EventService eventService) {
-		this.eventService = eventService;
 	}
 }

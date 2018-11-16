@@ -31,32 +31,32 @@ public class Event implements Serializable {
 	private String resolutionState = null;
 	private JSONObject additionalInfo = null;
 
-	public Event(String metricName, String messageKey, String description) throws IllegalArgumentException {
-		this(metricName, messageKey, description, null, null, null, null);
+	public Event(String resource, String messageKey, String description) throws IllegalArgumentException {
+		this(resource, messageKey, description, null, null, null, null);
 	}
 
-	public Event(String metricName, String messageKey, String description, String severity, String resolutionState) throws IllegalArgumentException {
-		this(metricName, messageKey, description, severity, resolutionState, null, null);
+	public Event(String resource, String messageKey, String description, String severity, String resolutionState) throws IllegalArgumentException {
+		this(resource, messageKey, description, severity, resolutionState, null, null);
 	}
 
-	public Event(String metricName, String messageKey, String description, JSONObject additionalInfo) throws IllegalArgumentException {
-		this(metricName, messageKey, description, null, null, additionalInfo, null);
+	public Event(String resource, String messageKey, String description, JSONObject additionalInfo) throws IllegalArgumentException {
+		this(resource, messageKey, description, null, null, additionalInfo, null);
 	}
 
-	public Event(String metricName, String messageKey, String description, Throwable throwable) throws IllegalArgumentException {
-		this(metricName, messageKey, description, null, null, null, throwable);
+	public Event(String resource, String messageKey, String description, Throwable throwable) throws IllegalArgumentException {
+		this(resource, messageKey, description, null, null, null, throwable);
 	}
 
-	public Event(String metricName, String messageKey, String description, JSONObject additionalInfo, Throwable throwable) throws IllegalArgumentException {
-		this(metricName, messageKey, description, null, null, additionalInfo, throwable);
+	public Event(String resource, String messageKey, String description, JSONObject additionalInfo, Throwable throwable) throws IllegalArgumentException {
+		this(resource, messageKey, description, null, null, additionalInfo, throwable);
 	}
 
-	public Event(String metricName, String messageKey, String description, String severity, String resolutionState, JSONObject additionalInfo) throws IllegalArgumentException {
-		this(metricName, messageKey, description, severity, resolutionState, additionalInfo, null);
+	public Event(String resource, String messageKey, String description, String severity, String resolutionState, JSONObject additionalInfo) throws IllegalArgumentException {
+		this(resource, messageKey, description, severity, resolutionState, additionalInfo, null);
 	}
 
-	public Event(String metricName, String messageKey, String description, String severity, String resolutionState, Throwable throwable) throws IllegalArgumentException {
-		this(metricName, messageKey, description, severity, resolutionState, null, throwable);
+	public Event(String resource, String messageKey, String description, String severity, String resolutionState, Throwable throwable) throws IllegalArgumentException {
+		this(resource, messageKey, description, severity, resolutionState, null, throwable);
 	}
 
 	@SuppressWarnings("unchecked")
