@@ -9,7 +9,7 @@
 
     <context:property-placeholder location="classpath*:batch.properties"/>
 
-    <bean id="batchJobService" class="edu.ucdavis.ucdh.stu.core.utils.BatchJobService">
+    <bean id="batchJobService" class="edu.ucdavis.ucdhs.isweb.core.utils.BatchJobService">
         <constructor-arg value="${batch.job.service.server.url}"></constructor-arg>
     </bean>
 
@@ -33,7 +33,7 @@
 		<property name="defaultAutoCommit" value="true" />
 	</bean>
 
-    <bean id="application" class="edu.ucdavis.ucdh.stu.snutil.batch.CopyTimeSheet">
+    <bean id="application" class="edu.ucdavis.ucdh.itoc.snutil.batch.CopyTimeSheet">
         <property name="serviceNowServer"   value="${servicenow.server}"/>
         <property name="serviceNowUser"     value="${servicenow.user}"/>
         <property name="serviceNowPassword" value="${servicenow.password}"/>
