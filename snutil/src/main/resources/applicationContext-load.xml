@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+    <context:property-placeholder location="classpath*:batch.properties"/>
+
+    <bean id="batchJobService" class="edu.ucdavis.ucdh.stu.core.utils.BatchJobService">
+        <constructor-arg value="${batch.job.service.server.url}"></constructor-arg>
+    </bean>
+
+    <bean id="appName" class="java.lang.String">
+        <constructor-arg value="${batch.job.app.id}"></constructor-arg>
+    </bean>
+    
+    <bean id="jobName" class="java.lang.String">
+        <constructor-arg value="${batch.job.name}"></constructor-arg>
+    </bean>
+    
+    <bean id="schlName" class="java.lang.String">
+        <constructor-arg value="${batch.job.schedule.name}"></constructor-arg>
+    </bean>
+
+	<bean id="prDataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${master.jdbc.driver}" />
+		<property name="url" value="${master.database.url}" />
+		<property name="username" value="${master.database.username}" />
+		<property name="password" value="${master.database.password}" />
+		<property name="defaultAutoCommit" value="true" />
+	</bean>
+
+	<bean id="iamDataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${iam.jdbc.driver}" />
+		<property name="url" value="${iam.database.url}" />
+		<property name="username" value="${iam.database.username}" />
+		<property name="password" value="${iam.database.password}" />
+		<property name="defaultAutoCommit" value="true" />
+	</bean>
+
+	<bean id="psDataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${peoplesoft.jdbc.driver}" />
+		<property name="url" value="${peoplesoft.database.url}" />
+		<property name="username" value="${peoplesoft.database.username}" />
+		<property name="password" value="${peoplesoft.database.password}" />
+		<property name="defaultAutoCommit" value="true" />
+	</bean>
+
+	<bean id="ppsDataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${pps.jdbc.driver}" />
+		<property name="url" value="${pps.database.url}" />
+		<property name="username" value="${pps.database.username}" />
+		<property name="password" value="${pps.database.password}" />
+		<property name="defaultAutoCommit" value="true" />
+	</bean>
+
+	<bean id="badgeDataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${badge.jdbc.driver}" />
+		<property name="url" value="${badge.database.url}" />
+		<property name="username" value="${badge.database.username}" />
+		<property name="password" value="${badge.database.password}" />
+		<property name="defaultAutoCommit" value="true" />
+	</bean>
+
+	<bean id="portraitDataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${photo.jdbc.driver}" />
+		<property name="url" value="${photo.database.url}" />
+		<property name="username" value="${photo.database.username}" />
+		<property name="password" value="${photo.database.password}" />
+		<property name="defaultAutoCommit" value="true" />
+	</bean>
+
+	<bean id="eventService" class="edu.ucdavis.ucdh.stu.snutil.util.EventService">
+		<constructor-arg value="${servicenow.server}" />
+		<constructor-arg value="${servicenow.user}" />
+		<constructor-arg value="${servicenow.password}" />
+	</bean>
+
+    <bean id="application" class="edu.ucdavis.ucdh.stu.snutil.batch.InitialUserLoad">
+        <property name="contextFactory"     value="${context.factory}"/>
+        <property name="providerUrl"        value="${provider.url}"/>
+        <property name="securityAuth"       value="${security.auth}"/>
+        <property name="securityPrin"       value="${security.prin}"/>
+        <property name="securityCred"       value="${security.cred}"/>
+        <property name="standardSearch"     value="${standard.search}"/>
+        <property name="serviceNowServer"   value="${servicenow.server}"/>
+        <property name="serviceNowUser"     value="${servicenow.user}"/>
+        <property name="serviceNowPassword" value="${servicenow.password}"/>
+        <property name="prDataSource"       ref="prDataSource"/>
+        <property name="iamDataSource"      ref="iamDataSource"/>
+        <property name="psDataSource"       ref="psDataSource"/>
+        <property name="ppsDataSource"      ref="ppsDataSource"/>
+        <property name="badgeDataSource"    ref="badgeDataSource"/>
+        <property name="portraitDataSource" ref="portraitDataSource"/>
+        <property name="eventService"       ref="eventService"/>
+    </bean>
+
+</beans>
