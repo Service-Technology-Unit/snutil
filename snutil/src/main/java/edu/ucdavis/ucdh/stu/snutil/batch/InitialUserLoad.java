@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URLEncoder;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,9 +30,6 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
@@ -48,15 +43,11 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SchemeSocketFactory;
-import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -699,7 +690,7 @@ public class InitialUserLoad implements SpringBatchJob {
 		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching user data using url " + url);
 			}
@@ -802,7 +793,7 @@ public class InitialUserLoad implements SpringBatchJob {
 		// post parameters
 		try {
 			post.setEntity(new StringEntity(insertData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting JSON data to " + url);
 			}
@@ -887,7 +878,7 @@ public class InitialUserLoad implements SpringBatchJob {
 		// put JSON
 		try {
 			put.setEntity(new StringEntity(updateData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			if (log.isDebugEnabled()) {
 				log.debug("Putting JSON update to " + url);
 			}
@@ -992,7 +983,7 @@ public class InitialUserLoad implements SpringBatchJob {
 		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching ServiceNow sys_id using url " + url);
 			}
@@ -1055,7 +1046,7 @@ public class InitialUserLoad implements SpringBatchJob {
 			HttpGet get = new HttpGet(url);
 			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
@@ -1271,7 +1262,7 @@ public class InitialUserLoad implements SpringBatchJob {
 		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching Live Profile data using url " + url);
 			}
@@ -1361,7 +1352,7 @@ public class InitialUserLoad implements SpringBatchJob {
 		// post XML
 		try {
 			post.setEntity(new ByteArrayEntity(xml.getBytes("UTF-8")));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting XML photo request to " + url);
 			}
@@ -1452,7 +1443,7 @@ public class InitialUserLoad implements SpringBatchJob {
 		// post XML
 		try {
 			post.setEntity(new ByteArrayEntity(xml.getBytes("UTF-8")));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting XML Live Profile photo request to " + url);
 			}
@@ -1535,7 +1526,7 @@ public class InitialUserLoad implements SpringBatchJob {
 		// put JSON
 		try {
 			put.setEntity(new StringEntity(updateData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			if (log.isDebugEnabled()) {
 				log.debug("Putting JSON update to " + url);
 			}
@@ -1584,7 +1575,7 @@ public class InitialUserLoad implements SpringBatchJob {
 		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching user photo sys_id using url " + url);
 			}
@@ -1648,7 +1639,7 @@ public class InitialUserLoad implements SpringBatchJob {
 		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching Live Profile Photo sys_id using url " + url);
 			}
@@ -1733,7 +1724,7 @@ public class InitialUserLoad implements SpringBatchJob {
 		// post XML
 		try {
 			post.setEntity(new ByteArrayEntity(xml.getBytes("UTF-8")));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting XML Live Profile thumbnail request to " + url);
 			}
@@ -1853,7 +1844,7 @@ public class InitialUserLoad implements SpringBatchJob {
 		// post parameters
 		try {
 			post.setEntity(new StringEntity(insertData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting JSON data to " + url);
 			}
@@ -1946,39 +1937,6 @@ public class InitialUserLoad implements SpringBatchJob {
 		return ts;
 	}
  
-	/**
-	 * <p>Builds and returns an HTTPClient.</p>
-	 *
-	 * @return an HTTPClient
-	 */
-	private static HttpClient createHttpClient() {
-		DefaultHttpClient httpClient = new DefaultHttpClient();
-		try {
-			SSLContext ctx = SSLContext.getInstance("TLSv1.2");
-			X509TrustManager tm = new X509TrustManager(){
-
-				public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
-				}
-
-				public void checkServerTrusted(X509Certificate[] xcs, String string) throws CertificateException {
-				}
-
-				public X509Certificate[] getAcceptedIssuers() {
-					return null;
-				}
-			};
-			ctx.init(null, new TrustManager[]{tm}, null);
-			SSLSocketFactory ssf = new SSLSocketFactory(ctx, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-			ClientConnectionManager ccm = httpClient.getConnectionManager();
-			SchemeRegistry sr = ccm.getSchemeRegistry();
-			sr.register(new Scheme("https", 443, (SchemeSocketFactory)ssf));
-			httpClient = new DefaultHttpClient(ccm, httpClient.getParams());
-		} catch (Exception e) {
-			System.out.println("Exception encountered: " + e.getClass().getName() + "; " + e.getMessage());
-		}
-		return httpClient;
-	}
-
 	/**
 	 * @param contextFactory the providerUrl to set
 	 */

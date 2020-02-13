@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.ucdavis.ucdh.stu</groupId>
   <artifactId>snutil</artifactId>
-	<version>1.2.1</version>
+	<version>1.2.2</version>
 	<name>ServiceNow Utilities</name>
 
 	<properties>
@@ -229,7 +229,7 @@
 		<dependency>
 			<groupId>edu.ucdavis.ucdh.stu</groupId>
 			<artifactId>up2date</artifactId>
-			<version>1.1.0</version>
+			<version>1.1.1</version>
 		</dependency>
 	</dependencies>
 
