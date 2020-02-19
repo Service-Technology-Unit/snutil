@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -43,11 +44,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -56,6 +55,7 @@ import org.json.simple.JSONValue;
 import edu.ucdavis.ucdh.stu.core.batch.SpringBatchJob;
 import edu.ucdavis.ucdh.stu.core.utils.BatchJobService;
 import edu.ucdavis.ucdh.stu.core.utils.BatchJobServiceStatistic;
+import edu.ucdavis.ucdh.stu.core.utils.HttpClientProvider;
 
 /**
  * <p>Loads ServiceNow with user data from the HS Person Repository.</p>
@@ -687,10 +687,10 @@ public class InitialUserLoad implements SpringBatchJob {
 			url = serviceNowServer + FETCH_URL + iamId;
 		}
 		HttpGet get = new HttpGet(url);
-		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching user data using url " + url);
 			}
@@ -767,7 +767,6 @@ public class InitialUserLoad implements SpringBatchJob {
 		// create HttpPost
 		String url = serviceNowServer + UPDATE_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -792,8 +791,9 @@ public class InitialUserLoad implements SpringBatchJob {
 
 		// post parameters
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new StringEntity(insertData.toJSONString()));
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting JSON data to " + url);
 			}
@@ -853,7 +853,6 @@ public class InitialUserLoad implements SpringBatchJob {
 		// create HttpPut
 		String url = serviceNowServer + UPDATE_URL + "/" + sysId;
 		HttpPut put = new HttpPut(url);
-		put.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		put.setHeader(HttpHeaders.ACCEPT, "application/json");
 		put.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -877,8 +876,9 @@ public class InitialUserLoad implements SpringBatchJob {
 
 		// put JSON
 		try {
+			put.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), put, null));
 			put.setEntity(new StringEntity(updateData.toJSONString()));
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Putting JSON update to " + url);
 			}
@@ -980,10 +980,10 @@ public class InitialUserLoad implements SpringBatchJob {
 			url = serviceNowServer + SYSID_URL + iamId;
 		}
 		HttpGet get = new HttpGet(url);
-		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching ServiceNow sys_id using url " + url);
 			}
@@ -1044,9 +1044,9 @@ public class InitialUserLoad implements SpringBatchJob {
 				log.debug("Fetching ServiceNow sys_id for " + field + " " + value + " from URL " + url);
 			}
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			HttpClient client = HttpClientProvider.getClient();
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
@@ -1259,10 +1259,10 @@ public class InitialUserLoad implements SpringBatchJob {
 		}
 		String url = serviceNowServer + LIVE_PROFILE_URL + "?sysparm_display_value=all&sysparm_fields=sys_id%2Cphoto&sysparm_query=document%3D" + sysId;
 		HttpGet get = new HttpGet(url);
-		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching Live Profile data using url " + url);
 			}
@@ -1334,7 +1334,6 @@ public class InitialUserLoad implements SpringBatchJob {
 		// create HttpPost
 		String url = serviceNowServer + PHOTO_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "text/xml");
 
@@ -1351,8 +1350,9 @@ public class InitialUserLoad implements SpringBatchJob {
 
 		// post XML
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new ByteArrayEntity(xml.getBytes("UTF-8")));
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting XML photo request to " + url);
 			}
@@ -1425,7 +1425,6 @@ public class InitialUserLoad implements SpringBatchJob {
 		// create HttpPost
 		String url = serviceNowServer + PHOTO_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "text/xml");
 
@@ -1442,8 +1441,9 @@ public class InitialUserLoad implements SpringBatchJob {
 
 		// post XML
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new ByteArrayEntity(xml.getBytes("UTF-8")));
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting XML Live Profile photo request to " + url);
 			}
@@ -1512,7 +1512,6 @@ public class InitialUserLoad implements SpringBatchJob {
 		// create HttpPut
 		String url = serviceNowServer + ATTACHMENT_URL + "/" + attachmentSysId;
 		HttpPut put = new HttpPut(url);
-		put.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		put.setHeader(HttpHeaders.ACCEPT, "application/json");
 		put.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -1525,8 +1524,9 @@ public class InitialUserLoad implements SpringBatchJob {
 
 		// put JSON
 		try {
+			put.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), put, null));
 			put.setEntity(new StringEntity(updateData.toJSONString()));
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Putting JSON update to " + url);
 			}
@@ -1572,10 +1572,10 @@ public class InitialUserLoad implements SpringBatchJob {
 		}
 		String url = serviceNowServer + PHOTO_FETCH_URL + sysId;
 		HttpGet get = new HttpGet(url);
-		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching user photo sys_id using url " + url);
 			}
@@ -1636,10 +1636,10 @@ public class InitialUserLoad implements SpringBatchJob {
 		}
 		String url = serviceNowServer + LIVE_PHOTO_FETCH_URL + liveProfileSysId;
 		HttpGet get = new HttpGet(url);
-		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching Live Profile Photo sys_id using url " + url);
 			}
@@ -1706,7 +1706,6 @@ public class InitialUserLoad implements SpringBatchJob {
 		// create HttpPost
 		String url = serviceNowServer + PHOTO_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "text/xml");
 
@@ -1723,8 +1722,9 @@ public class InitialUserLoad implements SpringBatchJob {
 
 		// post XML
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new ByteArrayEntity(xml.getBytes("UTF-8")));
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting XML Live Profile thumbnail request to " + url);
 			}
@@ -1827,7 +1827,6 @@ public class InitialUserLoad implements SpringBatchJob {
 		// create HttpPost
 		String url = serviceNowServer + LIVE_PROFILE_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -1843,8 +1842,9 @@ public class InitialUserLoad implements SpringBatchJob {
 
 		// post parameters
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new StringEntity(insertData.toJSONString()));
-			HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting JSON data to " + url);
 			}

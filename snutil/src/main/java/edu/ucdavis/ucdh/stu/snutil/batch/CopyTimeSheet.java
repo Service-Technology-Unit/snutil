@@ -2,6 +2,7 @@ package edu.ucdavis.ucdh.stu.snutil.batch;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -31,10 +32,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -43,6 +42,7 @@ import org.json.simple.JSONValue;
 import edu.ucdavis.ucdh.stu.core.batch.SpringBatchJob;
 import edu.ucdavis.ucdh.stu.core.utils.BatchJobService;
 import edu.ucdavis.ucdh.stu.core.utils.BatchJobServiceStatistic;
+import edu.ucdavis.ucdh.stu.core.utils.HttpClientProvider;
 
 /**
  * <p>Copies IT Time Sheets over to ServiceNow.</p>
@@ -62,7 +62,7 @@ public class CopyTimeSheet implements SpringBatchJob {
 	private Map<String,String> userSysId = new HashMap<String,String>();
 	private List<TimeSheet> timeSheet = new ArrayList<TimeSheet>();
 	private Iterator<TimeSheet> i = null;
-	private HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+	private HttpClient client = null;
 	private Connection conn = null;
 	private Date lastUpdate = null;
 	private String serviceNowServer = null;
@@ -122,6 +122,12 @@ public class CopyTimeSheet implements SpringBatchJob {
 			} catch (Exception e) {
 				throw new IllegalArgumentException("Unable to connect to dataSource: " + e, e);
 			}
+		}
+		// verify HTTP client
+		try {
+			client = HttpClientProvider.getClient();
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Unable to create HTTP client: " + e, e);
 		}
 		// fetch last update date
 		BufferedReader reader = null;
@@ -277,7 +283,7 @@ public class CopyTimeSheet implements SpringBatchJob {
 		}
 		try {
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();
@@ -329,7 +335,7 @@ public class CopyTimeSheet implements SpringBatchJob {
 		}
 		try {
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();
@@ -360,7 +366,7 @@ public class CopyTimeSheet implements SpringBatchJob {
 		}
 		try {
 			HttpDelete delete = new HttpDelete(url);
-			delete.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			delete.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), delete, null));
 			delete.setHeader(HttpHeaders.ACCEPT, "application/json");
 			HttpResponse response = client.execute(delete);
 			int rc = response.getStatusLine().getStatusCode();
@@ -393,12 +399,12 @@ public class CopyTimeSheet implements SpringBatchJob {
 		String url = serviceNowServer + TIME_SHEET_URL;
 		// create HttpPost
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
 		// put JSON
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			JSONObject timeSheet = new JSONObject();
 			timeSheet.put("week_starts_on", date);
 			timeSheet.put("user", userSysId);
@@ -444,12 +450,12 @@ public class CopyTimeSheet implements SpringBatchJob {
 		String url = serviceNowServer + TIME_CARD_URL;
 		// create HttpPost
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
 		// put JSON
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			JSONObject timeCard = new JSONObject();
 			timeCard.put("user", userSysId);
 			timeCard.put("time_sheet", tsSysId);
@@ -533,7 +539,7 @@ public class CopyTimeSheet implements SpringBatchJob {
 		}
 		try {
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();

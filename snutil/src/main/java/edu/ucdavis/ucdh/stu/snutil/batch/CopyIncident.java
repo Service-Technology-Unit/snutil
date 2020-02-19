@@ -1,6 +1,7 @@
 package edu.ucdavis.ucdh.stu.snutil.batch;
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,10 +24,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -35,6 +34,7 @@ import org.json.simple.JSONValue;
 import edu.ucdavis.ucdh.stu.core.batch.SpringBatchJob;
 import edu.ucdavis.ucdh.stu.core.utils.BatchJobService;
 import edu.ucdavis.ucdh.stu.core.utils.BatchJobServiceStatistic;
+import edu.ucdavis.ucdh.stu.core.utils.HttpClientProvider;
 
 
 /**
@@ -46,7 +46,7 @@ public class CopyIncident implements SpringBatchJob {
 	private static final String INCIDENT_URL = "/api/now/table/incident";
 	private final Log log = LogFactory.getLog(getClass().getName());
 	private Map<String,String> userSysId = new HashMap<String,String>();
-	private HttpClient client = HttpClients.custom().setSSLHostnameVerifier(new NoopHostnameVerifier()).build();
+	private HttpClient client = null;
 	private Connection conn = null;
 	private String id = null;
 	private String serviceNowServer = null;
@@ -102,6 +102,12 @@ public class CopyIncident implements SpringBatchJob {
 			} catch (Exception e) {
 				throw new IllegalArgumentException("Unable to connect to dataSource: " + e, e);
 			}
+		}
+		// verify HTTP client
+		try {
+			client = HttpClientProvider.getClient();
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Unable to create HTTP client: " + e, e);
 		}
 
 		log.info(" ");
@@ -236,12 +242,12 @@ public class CopyIncident implements SpringBatchJob {
 		String url = serviceNowServer + INCIDENT_URL;
 		// create HttpPost
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
 		// put JSON
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new StringEntity(incident.toJSONString()));
 			HttpResponse response = client.execute(post);
 			int rc = response.getStatusLine().getStatusCode();
@@ -280,12 +286,12 @@ public class CopyIncident implements SpringBatchJob {
 		String url = serviceNowServer + INCIDENT_URL + "/" + fetchIncidentSysId((String) incident.get("number"));
 		// create HttpPut
 		HttpPut put = new HttpPut(url);
-		put.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		put.setHeader(HttpHeaders.ACCEPT, "application/json");
 		put.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
 		// put JSON
 		try {
+			put.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), put, null));
 			put.setEntity(new StringEntity(incident.toJSONString()));
 			HttpResponse resp = client.execute(put);
 			int rc = resp.getStatusLine().getStatusCode();
@@ -360,7 +366,7 @@ public class CopyIncident implements SpringBatchJob {
 		String url = serviceNowServer + SYSID_URL + iamId;
 		try {
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();
@@ -394,7 +400,7 @@ public class CopyIncident implements SpringBatchJob {
 		String url = serviceNowServer + INCIDENT_SYSID_URL + serviceNowId;
 		try {
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();

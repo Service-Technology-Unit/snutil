@@ -1,6 +1,7 @@
 package edu.ucdavis.ucdh.stu.snutil.servlets;
 
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -24,6 +25,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+import edu.ucdavis.ucdh.stu.core.utils.HttpClientProvider;
 import edu.ucdavis.ucdh.stu.snutil.beans.Event;
 
 /**
@@ -136,9 +138,9 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 				url = serviceNowServer + FETCH_PRINTER_URL + URLEncoder.encode(name, "UTF-8");
 			}
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching ci data using url " + url);
 			}
@@ -226,7 +228,6 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 			url = serviceNowServer + UPDATE_PRINTER_URL;
 		}
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -246,8 +247,9 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 
 		// post parameters
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new StringEntity(insertData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting JSON data to " + url);
 			}
@@ -320,7 +322,6 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 			url = serviceNowServer + UPDATE_PRINTER_URL + "/" + sysId;
 		}
 		HttpPut put = new HttpPut(url);
-		put.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		put.setHeader(HttpHeaders.ACCEPT, "application/json");
 		put.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -348,8 +349,9 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 
 		// put JSON
 		try {
+			put.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), put, null));
 			put.setEntity(new StringEntity(updateData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Putting JSON update to " + url);
 			}
@@ -643,9 +645,9 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 		try {
 			String url = serviceNowServer + SYSID_URL + URLEncoder.encode(userId, "UTF-8");
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching ServiceNow sys_id using url " + url);
 			}
@@ -707,9 +709,9 @@ public class ConfigurationItemUpdateServlet extends SubscriberServlet {
 				log.debug("Fetching ServiceNow sys_id for " + field + " " + value + " from URL " + url);
 			}
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {

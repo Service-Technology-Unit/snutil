@@ -1,5 +1,6 @@
 package edu.ucdavis.ucdh.stu.snutil.util;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 import org.apache.commons.lang.StringUtils;
@@ -70,7 +71,6 @@ public class EventPoster extends Thread {
 
 		// create HttpPost
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(user, password), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -94,6 +94,7 @@ public class EventPoster extends Thread {
 
 		// post JSON object
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(user, password), post, null));
 			post.setEntity(new StringEntity(eventData.toJSONString()));
 			if (log.isDebugEnabled()) {
 				log.debug("EventPoster (#" + instance + ") posting JSON data to " + url);

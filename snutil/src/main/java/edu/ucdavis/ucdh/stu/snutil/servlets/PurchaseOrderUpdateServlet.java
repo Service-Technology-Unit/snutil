@@ -1,6 +1,7 @@
 package edu.ucdavis.ucdh.stu.snutil.servlets;
 
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -33,6 +34,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import edu.ucdavis.ucdh.stu.core.utils.HttpClientProvider;
 import edu.ucdavis.ucdh.stu.snutil.beans.Event;
 
 /**
@@ -170,9 +172,9 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		try {
 			String url = serviceNowServer + FETCH_URL + URLEncoder.encode(id, "UTF-8");
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching PO data using url " + url);
 			}
@@ -232,9 +234,9 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		try {
 			String url = serviceNowServer + FETCH_LINES_URL + URLEncoder.encode(sys_id, "UTF-8");
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching PO lines using url " + url);
 			}
@@ -377,7 +379,6 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		// create HttpPost
 		String url = serviceNowServer + UPDATE_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -398,8 +399,9 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 
 		// post parameters
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new StringEntity(insertData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting JSON data to " + url);
 			}
@@ -510,7 +512,6 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		// create HttpPut
 		String url = serviceNowServer + UPDATE_URL + "/" + sysId;
 		HttpPut put = new HttpPut(url);
-		put.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		put.setHeader(HttpHeaders.ACCEPT, "application/json");
 		put.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -532,8 +533,9 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 
 		// put JSON
 		try {
+			put.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), put, null));
 			put.setEntity(new StringEntity(updateData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Putting JSON update to " + url);
 			}
@@ -659,7 +661,6 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		// create HttpPost
 		String url = serviceNowServer + UPDATE_LINE_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -678,8 +679,9 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 
 		// post parameters
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new StringEntity(insertData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting JSON data to " + url);
 			}
@@ -738,7 +740,6 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		// create HttpPost
 		String url = serviceNowServer + UPDATE_LINE_URL + "/" + sysId;
 		HttpPut put = new HttpPut(url);
-		put.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		put.setHeader(HttpHeaders.ACCEPT, "application/json");
 		put.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -759,8 +760,9 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 
 		// put parameters
 		try {
+			put.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), put, null));
 			put.setEntity(new StringEntity(updateData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Putting JSON data to " + url);
 			}
@@ -819,13 +821,13 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		// create HttpDelete
 		String url = serviceNowServer + UPDATE_LINE_URL + "/" + sysId;
 		HttpDelete delete = new HttpDelete(url);
-		delete.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		delete.setHeader(HttpHeaders.ACCEPT, "application/json");
 		delete.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
 		// delete
 		try {
-			HttpClient client = createHttpClient();
+			delete.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), delete, null));
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Deleting PO Line using URL " + url);
 			}
@@ -1212,7 +1214,6 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		// create HttpPost
 		String url = serviceNowServer + VENDOR_INSERT_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -1224,8 +1225,9 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 
 		// post parameters
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new StringEntity(vendor.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting JSON data to " + url);
 			}
@@ -1369,7 +1371,6 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		// create HttpPost
 		String url = serviceNowServer + CONTRACT_INSERT_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -1381,8 +1382,9 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 
 		// post parameters
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new StringEntity(contract.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting JSON data to " + url);
 			}
@@ -1668,9 +1670,9 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 		try {
 			String url = serviceNowServer + SYSID_URL + URLEncoder.encode(userId, "UTF-8");
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching ServiceNow sys_id using url " + url);
 			}
@@ -1732,9 +1734,9 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 				log.debug("Fetching ServiceNow sys_id for " + field + " " + value + " from URL " + url);
 			}
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
@@ -1793,9 +1795,9 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 				log.debug("Fetching ServiceNow sys_ids for all IT departments from URL " + url);
 			}
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
@@ -1891,9 +1893,9 @@ public class PurchaseOrderUpdateServlet extends SubscriberServlet {
 				log.debug("Fetching ServiceNow sys_id for Eclipsys source system from URL " + url);
 			}
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {

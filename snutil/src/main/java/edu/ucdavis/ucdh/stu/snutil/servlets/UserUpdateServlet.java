@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -45,6 +46,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import edu.ucdavis.ucdh.stu.core.utils.HttpClientProvider;
 import edu.ucdavis.ucdh.stu.snutil.beans.Event;
 
 /**
@@ -213,10 +215,10 @@ public class UserUpdateServlet extends SubscriberServlet {
 		}
 		String url = serviceNowServer + FETCH_URL + iamId;
 		HttpGet get = new HttpGet(url);
-		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = createHttpClient();
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching user data using url " + url);
 			}
@@ -281,10 +283,10 @@ public class UserUpdateServlet extends SubscriberServlet {
 		}
 		String url = serviceNowServer + FETCH_BY_EXT_URL + externalId;
 		HttpGet get = new HttpGet(url);
-		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = createHttpClient();
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching user data using url " + url);
 			}
@@ -343,10 +345,10 @@ public class UserUpdateServlet extends SubscriberServlet {
 		}
 		String url = serviceNowServer + LIVE_PROFILE_URL + "?sysparm_display_value=all&sysparm_fields=sys_id%2Cphoto&sysparm_query=document%3D" + sysId;
 		HttpGet get = new HttpGet(url);
-		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = createHttpClient();
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching Live Profile data using url " + url);
 			}
@@ -442,7 +444,6 @@ public class UserUpdateServlet extends SubscriberServlet {
 		// create HttpPost
 		String url = serviceNowServer + UPDATE_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -473,8 +474,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 
 		// post parameters
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new StringEntity(insertData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting JSON data to " + url);
 			}
@@ -542,7 +544,6 @@ public class UserUpdateServlet extends SubscriberServlet {
 		// create HttpPut
 		String url = serviceNowServer + UPDATE_URL + "/" + sysId;
 		HttpPut put = new HttpPut(url);
-		put.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		put.setHeader(HttpHeaders.ACCEPT, "application/json");
 		put.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -589,8 +590,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 
 		// put JSON
 		try {
+			put.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), put, null));
 			put.setEntity(new StringEntity(updateData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Putting JSON update to " + url);
 			}
@@ -644,7 +646,6 @@ public class UserUpdateServlet extends SubscriberServlet {
 		// create HttpPut
 		String url = serviceNowServer + IDENTITY_UPDATE_URL + "/" + idSysId;
 		HttpPut put = new HttpPut(url);
-		put.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		put.setHeader(HttpHeaders.ACCEPT, "application/json");
 		put.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -656,8 +657,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 
 		// put JSON
 		try {
+			put.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), put, null));
 			put.setEntity(new StringEntity(updateData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Putting JSON update to " + url);
 			}
@@ -705,9 +707,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 		String url = serviceNowServer + IDENTITY_FETCH_URL + sysId;
 		try {
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching Identity sys_id using url " + url);
 			}
@@ -804,7 +806,6 @@ public class UserUpdateServlet extends SubscriberServlet {
 			// create HttpPost
 			String url = serviceNowServer + GROUP_MEMBER_URL;
 			HttpPost post = new HttpPost(url);
-			post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 			post.setHeader(HttpHeaders.ACCEPT, "application/json");
 			post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -818,8 +819,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 
 			// post JSON
 			try {
+				post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 				post.setEntity(new StringEntity(updateData.toJSONString()));
-				HttpClient client = createHttpClient();
+				HttpClient client = HttpClientProvider.getClient();
 				if (log.isDebugEnabled()) {
 					log.debug("Posting JSON update to " + url);
 				}
@@ -875,13 +877,13 @@ public class UserUpdateServlet extends SubscriberServlet {
 			// create HttpDelete
 			String url = serviceNowServer + GROUP_MEMBER_URL + "/" + membershipSysId;
 			HttpDelete delete = new HttpDelete(url);
-			delete.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 			delete.setHeader(HttpHeaders.ACCEPT, "application/json");
 			delete.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
 			// delete
 			try {
-				HttpClient client = createHttpClient();
+				delete.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), delete, null));
+				HttpClient client = HttpClientProvider.getClient();
 				if (log.isDebugEnabled()) {
 					log.debug("Issuing HTTP DELETE to URL " + url);
 				}
@@ -937,9 +939,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 		String url = serviceNowServer + GROUP_MEMBER_FETCH_URL + getReferenceSysId("group", "IT Staff", details) + "%5Euser%3D" + userSysId;
 		try {
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching ServiceNow sys_id for IT Staff group membership using url " + url);
 			}
@@ -1116,9 +1118,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 		String url = serviceNowServer + SYSID_URL + iamId;
 		try {
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching ServiceNow sys_id using url " + url);
 			}
@@ -1180,9 +1182,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 				log.debug("Fetching ServiceNow sys_id for " + field + " " + value + " from URL " + url);
 			}
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
@@ -1237,9 +1239,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 				log.debug("Fetching ServiceNow sys_ids for all IT departments from URL " + url);
 			}
 			HttpGet get = new HttpGet(url);
-			get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
 			get.setHeader(HttpHeaders.ACCEPT, "application/json");
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			HttpResponse response = client.execute(get);
 			int rc = response.getStatusLine().getStatusCode();
 			if (log.isDebugEnabled()) {
@@ -1458,7 +1460,6 @@ public class UserUpdateServlet extends SubscriberServlet {
 		// create HttpPost
 		String url = serviceNowServer + PHOTO_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "text/xml");
 
@@ -1475,8 +1476,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 
 		// post XML
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new ByteArrayEntity(xml.getBytes("UTF-8")));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting XML photo request to " + url);
 			}
@@ -1561,7 +1563,6 @@ public class UserUpdateServlet extends SubscriberServlet {
 		// create HttpPost
 		String url = serviceNowServer + PHOTO_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "text/xml");
 
@@ -1578,8 +1579,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 
 		// post XML
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new ByteArrayEntity(xml.getBytes("UTF-8")));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting XML Live Profile photo request to " + url);
 			}
@@ -1652,7 +1654,6 @@ public class UserUpdateServlet extends SubscriberServlet {
 		// create HttpPut
 		String url = serviceNowServer + ATTACHMENT_URL + "/" + attachmentSysId;
 		HttpPut put = new HttpPut(url);
-		put.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		put.setHeader(HttpHeaders.ACCEPT, "application/json");
 		put.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -1665,8 +1666,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 
 		// put JSON
 		try {
+			put.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), put, null));
 			put.setEntity(new StringEntity(updateData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Putting JSON update to " + url);
 			}
@@ -1713,10 +1715,10 @@ public class UserUpdateServlet extends SubscriberServlet {
 		}
 		String url = serviceNowServer + PHOTO_FETCH_URL + sysId;
 		HttpGet get = new HttpGet(url);
-		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = createHttpClient();
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching user photo sys_id using url " + url);
 			}
@@ -1780,10 +1782,10 @@ public class UserUpdateServlet extends SubscriberServlet {
 		}
 		String url = serviceNowServer + LIVE_PHOTO_FETCH_URL + liveProfileSysId;
 		HttpGet get = new HttpGet(url);
-		get.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		get.setHeader(HttpHeaders.ACCEPT, "application/json");
 		try {
-			HttpClient client = createHttpClient();
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Fetching Live Profile Photo sys_id using url " + url);
 			}
@@ -1853,7 +1855,6 @@ public class UserUpdateServlet extends SubscriberServlet {
 		// create HttpPost
 		String url = serviceNowServer + PHOTO_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "text/xml");
 
@@ -1870,8 +1871,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 
 		// post XML
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new ByteArrayEntity(xml.getBytes("UTF-8")));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting XML Live Profile thumbnail request to " + url);
 			}
@@ -1976,7 +1978,6 @@ public class UserUpdateServlet extends SubscriberServlet {
 		// create HttpPost
 		String url = serviceNowServer + LIVE_PROFILE_URL;
 		HttpPost post = new HttpPost(url);
-		post.addHeader(BasicScheme.authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), "UTF-8", false));
 		post.setHeader(HttpHeaders.ACCEPT, "application/json");
 		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
@@ -1992,8 +1993,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 
 		// post parameters
 		try {
+			post.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), post, null));
 			post.setEntity(new StringEntity(insertData.toJSONString()));
-			HttpClient client = createHttpClient();
+			HttpClient client = HttpClientProvider.getClient();
 			if (log.isDebugEnabled()) {
 				log.debug("Posting JSON data to " + url);
 			}
