@@ -56,6 +56,7 @@ public class UserUpdateServlet extends SubscriberServlet {
 	private static final long serialVersionUID = 1;
 	private static final String FETCH_URL = "/api/now/table/sys_user?sysparm_display_value=all&sysparm_query=employee_number%3D";
 	private static final String FETCH_BY_EXT_URL = "/api/now/table/sys_user?sysparm_display_value=all&sysparm_query=u_external_id%3D";
+	private static final String FETCH_BY_AD_URL = "/api/now/table/sys_user?sysparm_display_value=all&sysparm_query=user_name%3D";
 	private static final String SYSID_URL = "/api/now/table/sys_user?sysparm_fields=sys_id&sysparm_query=employee_number%3D";
 	private static final String IDENTITY_FETCH_URL = "/api/now/table/x_ucdhs_identity_s_identity?sysparm_fields=sys_id&sysparm_query=user%3D";
 	private static final String IDENTITY_UPDATE_URL = "/api/now/table/x_ucdhs_identity_s_identity/";
@@ -254,8 +255,11 @@ public class UserUpdateServlet extends SubscriberServlet {
 				}
 				JSONObject newPerson = (JSONObject) details.get("newData");
 				String externalId = (String) newPerson.get("u_external_id");
+				String adId = (String) newPerson.get("user_name");
 				if (StringUtils.isNotEmpty(externalId) && externalId.startsWith("H0")) {
 					user = fetchServiceNowUserByExtId(externalId, iamId, details);
+				} else if (StringUtils.isNotEmpty(adId)) {
+					user = fetchServiceNowUserByAdId(adId, iamId, details);
 				}
 			}
 		} catch (Exception e) {
@@ -324,6 +328,74 @@ public class UserUpdateServlet extends SubscriberServlet {
 		} catch (Exception e) {
 			log.error("Exception encountered searching for user with External ID " + externalId + ": " + e, e);
 			eventService.logEvent(new Event((String) details.get("id"), "User fetch exception", "Exception encountered searching for user with External ID " + externalId + ": " + e, details, e));
+		}
+
+		return user;
+	}
+
+	/**
+	 * <p>Returns the ServiceNow user data on file, if present.</p>
+	 *
+	 * @param adId the A/D ID of the person
+	 * @param iamId the IAM ID of the person
+	 * @param details the <code>JSONObject</code> object containing the details of the request
+	 * @return the ServiceNow user data
+	 */
+	@SuppressWarnings("unchecked")
+	private JSONObject fetchServiceNowUserByAdId(String adId, String iamId, JSONObject details) {
+		JSONObject user = null;
+
+		if (log.isDebugEnabled()) {
+			log.debug("Fetching ServiceNow user data for A/D ID " + adId);
+		}
+		String url = serviceNowServer + FETCH_BY_AD_URL + adId;
+		HttpGet get = new HttpGet(url);
+		get.setHeader(HttpHeaders.ACCEPT, "application/json");
+		try {
+			get.addHeader(new BasicScheme(StandardCharsets.UTF_8).authenticate(new UsernamePasswordCredentials(serviceNowUser, serviceNowPassword), get, null));
+			HttpClient client = HttpClientProvider.getClient();
+			if (log.isDebugEnabled()) {
+				log.debug("Fetching user data using url " + url);
+			}
+			HttpResponse response = client.execute(get);
+			int rc = response.getStatusLine().getStatusCode();
+			String resp = "";
+			HttpEntity entity = response.getEntity();
+			if (entity != null) {
+				resp = EntityUtils.toString(entity);
+			}
+			if (log.isDebugEnabled()) {
+				log.debug("HTTP response code: " + rc);
+				log.debug("HTTP response: " + resp);
+			}
+			JSONObject result = (JSONObject) JSONValue.parse(resp);
+			if (rc != 200) {
+				details.put("responseCode", rc + "");
+				details.put("responseBody", result);
+				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching user data for A/D ID " + adId + ": " + rc, details));
+				if (log.isDebugEnabled()) {
+					log.debug("Invalid HTTP Response Code returned when fetching user data for A/D ID " + adId + ": " + rc);
+				}
+			}
+			JSONArray users = (JSONArray) result.get("result");
+			if (users != null && users.size() > 0) {
+				if (isEqual((JSONObject) details.get("newData"), (JSONObject) users.get(0), "first_name") && isEqual((JSONObject) details.get("newData"), (JSONObject) users.get(0), "last_name")) {
+					user = (JSONObject) users.get(0);
+					if (log.isDebugEnabled()) {
+						log.debug("User found for A/D ID " + adId + ": " + user);
+					}
+				} else {
+					log.error("User found for A/D ID " + adId + ", but existing user name is not the same as the name in the update data.");
+					eventService.logEvent(new Event((String) details.get("id"), "Conflicting/duplicate User", "User found for A/D ID " + adId + ", but existing user name is not the same as the name in the update data.", details));
+				}
+			} else {
+				if (log.isDebugEnabled()) {
+					log.debug("User not found for A/D ID " + adId);
+				}
+			}
+		} catch (Exception e) {
+			log.error("Exception encountered searching for user with A/D ID " + adId + ": " + e, e);
+			eventService.logEvent(new Event((String) details.get("id"), "User fetch exception", "Exception encountered searching for user with A/D ID " + adId + ": " + e, details, e));
 		}
 
 		return user;
