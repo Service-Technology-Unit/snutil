@@ -234,33 +234,32 @@ public class UserUpdateServlet extends SubscriberServlet {
 				log.debug("HTTP response code: " + rc);
 				log.debug("HTTP response: " + resp);
 			}
-			JSONObject result = (JSONObject) JSONValue.parse(resp);
-			if (rc != 200) {
-				details.put("responseCode", rc + "");
-				details.put("responseBody", result);
-				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching user data for IAM ID " + iamId + ": " + rc, details));
-				if (log.isDebugEnabled()) {
-					log.debug("Invalid HTTP Response Code returned when fetching user data for IAM ID " + iamId + ": " + rc);
-				}
-			}
-			JSONArray users = (JSONArray) result.get("result");
-			if (users != null && users.size() > 0) {
-				user = (JSONObject) users.get(0);
-				if (log.isDebugEnabled()) {
-					log.debug("User found for IAM ID " + iamId + ": " + user);
+			if (rc == 200) {
+				JSONObject result = (JSONObject) JSONValue.parse(resp);
+				JSONArray users = (JSONArray) result.get("result");
+				if (users != null && users.size() > 0) {
+					user = (JSONObject) users.get(0);
+					if (log.isDebugEnabled()) {
+						log.debug("User found for IAM ID " + iamId + ": " + user);
+					}
+				} else {
+					if (log.isDebugEnabled()) {
+						log.debug("User not found for IAM ID " + iamId);
+					}
+					JSONObject newPerson = (JSONObject) details.get("newData");
+					String externalId = (String) newPerson.get("u_external_id");
+					String adId = (String) newPerson.get("user_name");
+					if (StringUtils.isNotEmpty(externalId) && externalId.startsWith("H0")) {
+						user = fetchServiceNowUserByExtId(externalId, iamId, details);
+					} else if (StringUtils.isNotEmpty(adId)) {
+						user = fetchServiceNowUserByAdId(adId, iamId, details);
+					}
 				}
 			} else {
-				if (log.isDebugEnabled()) {
-					log.debug("User not found for IAM ID " + iamId);
-				}
-				JSONObject newPerson = (JSONObject) details.get("newData");
-				String externalId = (String) newPerson.get("u_external_id");
-				String adId = (String) newPerson.get("user_name");
-				if (StringUtils.isNotEmpty(externalId) && externalId.startsWith("H0")) {
-					user = fetchServiceNowUserByExtId(externalId, iamId, details);
-				} else if (StringUtils.isNotEmpty(adId)) {
-					user = fetchServiceNowUserByAdId(adId, iamId, details);
-				}
+				details.put("responseCode", rc + "");
+				details.put("responseBody", resp);
+				log.error("Invalid HTTP Response Code returned when fetching user data for IAM ID " + iamId + ": " + rc);
+				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching user data for IAM ID " + iamId + ": " + rc, details));
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for user with IAM ID " + iamId + ": " + e, e);
@@ -305,25 +304,24 @@ public class UserUpdateServlet extends SubscriberServlet {
 				log.debug("HTTP response code: " + rc);
 				log.debug("HTTP response: " + resp);
 			}
-			JSONObject result = (JSONObject) JSONValue.parse(resp);
-			if (rc != 200) {
-				details.put("responseCode", rc + "");
-				details.put("responseBody", result);
-				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching user data for External ID " + externalId + ": " + rc, details));
-				if (log.isDebugEnabled()) {
-					log.debug("Invalid HTTP Response Code returned when fetching user data for External ID " + externalId + ": " + rc);
-				}
-			}
-			JSONArray users = (JSONArray) result.get("result");
-			if (users != null && users.size() > 0) {
-				user = (JSONObject) users.get(0);
-				if (log.isDebugEnabled()) {
-					log.debug("User found for External ID " + externalId + ": " + user);
+			if (rc == 200) {
+				JSONObject result = (JSONObject) JSONValue.parse(resp);
+				JSONArray users = (JSONArray) result.get("result");
+				if (users != null && users.size() > 0) {
+					user = (JSONObject) users.get(0);
+					if (log.isDebugEnabled()) {
+						log.debug("User found for External ID " + externalId + ": " + user);
+					}
+				} else {
+					if (log.isDebugEnabled()) {
+						log.debug("User not found for External ID " + externalId);
+					}
 				}
 			} else {
-				if (log.isDebugEnabled()) {
-					log.debug("User not found for External ID " + externalId);
-				}
+				details.put("responseCode", rc + "");
+				details.put("responseBody", resp);
+				log.error("Invalid HTTP Response Code returned when fetching user data for External ID " + externalId + ": " + rc);
+				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching user data for External ID " + externalId + ": " + rc, details));
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for user with External ID " + externalId + ": " + e, e);
@@ -368,30 +366,29 @@ public class UserUpdateServlet extends SubscriberServlet {
 				log.debug("HTTP response code: " + rc);
 				log.debug("HTTP response: " + resp);
 			}
-			JSONObject result = (JSONObject) JSONValue.parse(resp);
-			if (rc != 200) {
-				details.put("responseCode", rc + "");
-				details.put("responseBody", result);
-				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching user data for A/D ID " + adId + ": " + rc, details));
-				if (log.isDebugEnabled()) {
-					log.debug("Invalid HTTP Response Code returned when fetching user data for A/D ID " + adId + ": " + rc);
-				}
-			}
-			JSONArray users = (JSONArray) result.get("result");
-			if (users != null && users.size() > 0) {
-				if (isEqual((JSONObject) details.get("newData"), (JSONObject) users.get(0), "first_name") && isEqual((JSONObject) details.get("newData"), (JSONObject) users.get(0), "last_name")) {
-					user = (JSONObject) users.get(0);
-					if (log.isDebugEnabled()) {
-						log.debug("User found for A/D ID " + adId + ": " + user);
+			if (rc == 200) {
+				JSONObject result = (JSONObject) JSONValue.parse(resp);
+				JSONArray users = (JSONArray) result.get("result");
+				if (users != null && users.size() > 0) {
+					if (isEqual((JSONObject) details.get("newData"), (JSONObject) users.get(0), "first_name") && isEqual((JSONObject) details.get("newData"), (JSONObject) users.get(0), "last_name")) {
+						user = (JSONObject) users.get(0);
+						if (log.isDebugEnabled()) {
+							log.debug("User found for A/D ID " + adId + ": " + user);
+						}
+					} else {
+						log.error("User found for A/D ID " + adId + ", but existing user name is not the same as the name in the update data.");
+						eventService.logEvent(new Event((String) details.get("id"), "Conflicting/duplicate User", "User found for A/D ID " + adId + ", but existing user name is not the same as the name in the update data.", details));
 					}
 				} else {
-					log.error("User found for A/D ID " + adId + ", but existing user name is not the same as the name in the update data.");
-					eventService.logEvent(new Event((String) details.get("id"), "Conflicting/duplicate User", "User found for A/D ID " + adId + ", but existing user name is not the same as the name in the update data.", details));
+					if (log.isDebugEnabled()) {
+						log.debug("User not found for A/D ID " + adId);
+					}
 				}
 			} else {
-				if (log.isDebugEnabled()) {
-					log.debug("User not found for A/D ID " + adId);
-				}
+				details.put("responseCode", rc + "");
+				details.put("responseBody", resp);
+				log.error("Invalid HTTP Response Code returned when fetching user data for A/D ID " + adId + ": " + rc);
+				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching user data for A/D ID " + adId + ": " + rc, details));
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for user with A/D ID " + adId + ": " + e, e);
@@ -434,40 +431,39 @@ public class UserUpdateServlet extends SubscriberServlet {
 			if (entity != null) {
 				resp = EntityUtils.toString(entity);
 			}
-			JSONObject result = (JSONObject) JSONValue.parse(resp);
-			if (rc != 200) {
-				details.put("responseCode", rc + "");
-				details.put("responseBody", result);
-				eventService.logEvent(new Event((String) details.get("id"), "Live Profile fetch error", "Invalid HTTP Response Code returned when fetching Live Profile data for sys_id " + sysId + ": " + rc, details));
-				if (log.isDebugEnabled()) {
-					log.debug("Invalid HTTP Response Code returned when fetching Live Profile data for sys_id " + sysId + ": " + rc);
-				}
-			}
-			JSONArray profiles = (JSONArray) result.get("result");
-			if (profiles != null && profiles.size() > 0) {
-				JSONObject profile = (JSONObject) profiles.get(0);
-				if (log.isDebugEnabled()) {
-					log.debug("Live Profile found for sys_id " + sysId + ": " + profile);
-				}
-				JSONObject photoData = (JSONObject) profile.get("photo");
-				if (photoData != null) {
-					if (StringUtils.isNotEmpty((String) photoData.get("display_value")) || StringUtils.isNotEmpty((String) photoData.get("value"))) {
-						liveProfileSysId = PHOTO_EXISTS;
-						if (log.isDebugEnabled()) {
-							log.debug("Live Profile photo found for sys_id " + sysId + ": " + profile);
+			if (rc == 200) {
+				JSONObject result = (JSONObject) JSONValue.parse(resp);
+				JSONArray profiles = (JSONArray) result.get("result");
+				if (profiles != null && profiles.size() > 0) {
+					JSONObject profile = (JSONObject) profiles.get(0);
+					if (log.isDebugEnabled()) {
+						log.debug("Live Profile found for sys_id " + sysId + ": " + profile);
+					}
+					JSONObject photoData = (JSONObject) profile.get("photo");
+					if (photoData != null) {
+						if (StringUtils.isNotEmpty((String) photoData.get("display_value")) || StringUtils.isNotEmpty((String) photoData.get("value"))) {
+							liveProfileSysId = PHOTO_EXISTS;
+							if (log.isDebugEnabled()) {
+								log.debug("Live Profile photo found for sys_id " + sysId + ": " + profile);
+							}
 						}
 					}
-				}
-				if (StringUtils.isEmpty(liveProfileSysId)) {
-					JSONObject documentData = (JSONObject) profile.get("document");
-					if (documentData != null) {
-						liveProfileSysId = (String) documentData.get("value");
+					if (StringUtils.isEmpty(liveProfileSysId)) {
+						JSONObject documentData = (JSONObject) profile.get("document");
+						if (documentData != null) {
+							liveProfileSysId = (String) documentData.get("value");
+						}
+					}
+				} else {
+					if (log.isDebugEnabled()) {
+						log.debug("Live Profile not found for sys_id " + sysId);
 					}
 				}
 			} else {
-				if (log.isDebugEnabled()) {
-					log.debug("Live Profile not found for sys_id " + sysId);
-				}
+				details.put("responseCode", rc + "");
+				details.put("responseBody", resp);
+				log.error("Invalid HTTP Response Code returned when fetching Live Profile data for sys_id " + sysId + ": " + rc);
+				eventService.logEvent(new Event((String) details.get("id"), "Live Profile fetch error", "Invalid HTTP Response Code returned when fetching Live Profile data for sys_id " + sysId + ": " + rc, details));
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for Live Profile with sys_id " + sysId + ": " + e, e);
@@ -1804,31 +1800,30 @@ public class UserUpdateServlet extends SubscriberServlet {
 			if (entity != null) {
 				resp = EntityUtils.toString(entity);
 			}
-			JSONObject result = (JSONObject) JSONValue.parse(resp);
-			if (rc != 200) {
-				details.put("responseCode", rc + "");
-				details.put("responseBody", result);
-				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching user photo sys_id for user " + sysId + ": " + rc, details));
-				if (log.isDebugEnabled()) {
-					log.debug("Invalid HTTP Response Code returned when fetching user photo sys_id for user " + sysId + ": " + rc);
-				}
-			}
-			JSONArray profiles = (JSONArray) result.get("result");
-			if (profiles != null && profiles.size() > 0) {
-				JSONObject profile = (JSONObject) profiles.get(0);
-				userPhotoSysId = (String) profile.get("photo");
-				if (StringUtils.isNotEmpty(userPhotoSysId)) {
-					if (userPhotoSysId.indexOf(".") != -1) {
-						userPhotoSysId = userPhotoSysId.substring(0, userPhotoSysId.indexOf("."));
+			if (rc == 200) {
+				JSONObject result = (JSONObject) JSONValue.parse(resp);
+				JSONArray profiles = (JSONArray) result.get("result");
+				if (profiles != null && profiles.size() > 0) {
+					JSONObject profile = (JSONObject) profiles.get(0);
+					userPhotoSysId = (String) profile.get("photo");
+					if (StringUtils.isNotEmpty(userPhotoSysId)) {
+						if (userPhotoSysId.indexOf(".") != -1) {
+							userPhotoSysId = userPhotoSysId.substring(0, userPhotoSysId.indexOf("."));
+						}
 					}
 				}
-			}
-			if (log.isDebugEnabled()) {
-				if (StringUtils.isNotEmpty(userPhotoSysId)) {
-					log.debug("user photo sys_id for user " + sysId + ": " + userPhotoSysId);
-				} else {
-					log.debug("user photo sys_id not found for user " + sysId);
+				if (log.isDebugEnabled()) {
+					if (StringUtils.isNotEmpty(userPhotoSysId)) {
+						log.debug("user photo sys_id for user " + sysId + ": " + userPhotoSysId);
+					} else {
+						log.debug("user photo sys_id not found for user " + sysId);
+					}
 				}
+			} else {
+				details.put("responseCode", rc + "");
+				details.put("responseBody", resp);
+				log.error("Invalid HTTP Response Code returned when fetching user photo sys_id for user " + sysId + ": " + rc);
+				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching user photo sys_id for user " + sysId + ": " + rc, details));
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for user photo sys_id for user " + sysId + ": " + e, e);
@@ -1871,31 +1866,30 @@ public class UserUpdateServlet extends SubscriberServlet {
 			if (entity != null) {
 				resp = EntityUtils.toString(entity);
 			}
-			JSONObject result = (JSONObject) JSONValue.parse(resp);
-			if (rc != 200) {
-				details.put("responseCode", rc + "");
-				details.put("responseBody", result);
-				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + rc, details));
-				if (log.isDebugEnabled()) {
-					log.debug("Invalid HTTP Response Code returned when fetching Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + rc);
-				}
-			}
-			JSONArray profiles = (JSONArray) result.get("result");
-			if (profiles != null && profiles.size() > 0) {
-				JSONObject profile = (JSONObject) profiles.get(0);
-				livePhotoSysId = (String) profile.get("photo");
-				if (StringUtils.isNotEmpty(livePhotoSysId)) {
-					if (livePhotoSysId.indexOf(".") != -1) {
-						livePhotoSysId = livePhotoSysId.substring(0, livePhotoSysId.indexOf("."));
+			if (rc == 200) {
+				JSONObject result = (JSONObject) JSONValue.parse(resp);
+				JSONArray profiles = (JSONArray) result.get("result");
+				if (profiles != null && profiles.size() > 0) {
+					JSONObject profile = (JSONObject) profiles.get(0);
+					livePhotoSysId = (String) profile.get("photo");
+					if (StringUtils.isNotEmpty(livePhotoSysId)) {
+						if (livePhotoSysId.indexOf(".") != -1) {
+							livePhotoSysId = livePhotoSysId.substring(0, livePhotoSysId.indexOf("."));
+						}
 					}
 				}
-			}
-			if (log.isDebugEnabled()) {
-				if (StringUtils.isNotEmpty(livePhotoSysId)) {
-					log.debug("Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + livePhotoSysId);
-				} else {
-					log.debug("Live Profile Photo sys_id not found for Live Profile " + liveProfileSysId);
+				if (log.isDebugEnabled()) {
+					if (StringUtils.isNotEmpty(livePhotoSysId)) {
+						log.debug("Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + livePhotoSysId);
+					} else {
+						log.debug("Live Profile Photo sys_id not found for Live Profile " + liveProfileSysId);
+					}
 				}
+			} else {
+				details.put("responseCode", rc + "");
+				details.put("responseBody", resp);
+				log.error("Invalid HTTP Response Code returned when fetching Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + rc);
+				eventService.logEvent(new Event((String) details.get("id"), "User fetch error", "Invalid HTTP Response Code returned when fetching Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + rc, details));
 			}
 		} catch (Exception e) {
 			log.error("Exception encountered searching for Live Profile Photo sys_id for Live Profile " + liveProfileSysId + ": " + e, e);
