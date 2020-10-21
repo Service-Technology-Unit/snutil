@@ -84,7 +84,7 @@ public class Event implements Serializable {
 			if (this.additionalInfo == null) {
 				this.additionalInfo = new JSONObject();
 			}
-			additionalInfo.put("exception", exception);
+			this.additionalInfo.put("exception", exception);
 		}
 	}
 
