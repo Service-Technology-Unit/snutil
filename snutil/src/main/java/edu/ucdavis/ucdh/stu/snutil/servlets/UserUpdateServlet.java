@@ -6,6 +6,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -37,9 +44,18 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -54,6 +70,7 @@ import edu.ucdavis.ucdh.stu.snutil.beans.Event;
  */
 public class UserUpdateServlet extends SubscriberServlet {
 	private static final long serialVersionUID = 1;
+	private static final String AUTH_URL = "/api/access/onguard/openaccess/authentication?version=1.0";
 	private static final String FETCH_URL = "/api/now/table/sys_user?sysparm_display_value=all&sysparm_query=employee_number%3D";
 	private static final String FETCH_BY_EXT_URL = "/api/now/table/sys_user?sysparm_display_value=all&sysparm_query=u_external_id%3D";
 	private static final String FETCH_BY_AD_URL = "/api/now/table/sys_user?sysparm_display_value=all&sysparm_query=user_name%3D";
@@ -72,6 +89,8 @@ public class UserUpdateServlet extends SubscriberServlet {
 	private static final String LIVE_PROFILE_URL = "/api/now/table/live_profile";
 	private static final String PHOTO_FETCH_URL = "/api/now/table/sys_user?sysparm_display_value=true&sysparm_fields=photo&sysparm_query=sys_id%3D";
 	private static final String LIVE_PHOTO_FETCH_URL = "/api/now/table/live_profile?sysparm_display_value=true&sysparm_fields=photo&sysparm_query=sys_id%3D";
+	private static final String LENEL_ID_FETCH_URL = "/api/access/onguard/openaccess/instances?version=1.0&type_name=Lnl_Cardholder&filter=IAM_ID%3D%22";
+	private static final String LENEL_PHOTO_FETCH_URL = "/api/access/onguard/openaccess/instances?version=1.0&type_name=Lnl_MultimediaObject&filter=DATATYPE%3D0%20and%20OBJECTTYPE%3D1%20and%20PersonID%3D";
 	private static final String ATTACHMENT_URL = "/api/now/table/sys_attachment/";
 	private static final String IT_DEPT_URL = "/api/now/table/cmn_department?sysparm_query=nameSTARTSWITHIT%20%5EORnameSTARTSWITHMED%3AAcad%20%5EORnameSTARTSWITHMED%3AResearch&sysparm_fields=sys_id";
 	private static final String PHOTO_EXISTS = "photo exists";
@@ -85,6 +104,11 @@ public class UserUpdateServlet extends SubscriberServlet {
 	private List<String> itDepartments = new ArrayList<String>();
 	private DataSource badgeDataSource = null;
 	private DataSource portraitDataSource = null;
+	private String lenelServer = null;
+	private String lenelUser = null;
+	private String lenelPassword = null;
+	private String lenelDirectory = null;
+	private String lenelApplicationId = null;
 
 	/**
 	 * @inheritDoc
@@ -95,6 +119,11 @@ public class UserUpdateServlet extends SubscriberServlet {
 		ServletConfig config = getServletConfig();
 		badgeDataSource = (DataSource) WebApplicationContextUtils.getRequiredWebApplicationContext(config.getServletContext()).getBean("badgeDataSource");
 		portraitDataSource = (DataSource) WebApplicationContextUtils.getRequiredWebApplicationContext(config.getServletContext()).getBean("portraitDataSource");
+		lenelServer = (String) WebApplicationContextUtils.getRequiredWebApplicationContext(config.getServletContext()).getBean("lenelServer");
+		lenelUser = (String) WebApplicationContextUtils.getRequiredWebApplicationContext(config.getServletContext()).getBean("lenelUser");
+		lenelPassword = (String) WebApplicationContextUtils.getRequiredWebApplicationContext(config.getServletContext()).getBean("lenelPassword");
+		lenelDirectory = (String) WebApplicationContextUtils.getRequiredWebApplicationContext(config.getServletContext()).getBean("lenelDirectory");
+		lenelApplicationId = (String) WebApplicationContextUtils.getRequiredWebApplicationContext(config.getServletContext()).getBean("lenelApplicationId");
 		for (int i=0;i<PROPERTY.length;i++) {
 			String[] parts = PROPERTY[i].split(":");
 			fieldMap.put(parts[0], parts[1]);
@@ -449,9 +478,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 						}
 					}
 					if (StringUtils.isEmpty(liveProfileSysId)) {
-						JSONObject documentData = (JSONObject) profile.get("document");
-						if (documentData != null) {
-							liveProfileSysId = (String) documentData.get("value");
+						JSONObject sysIdData = (JSONObject) profile.get("sys_id");
+						if (sysIdData != null) {
+							liveProfileSysId = (String) sysIdData.get("value");
 						}
 					}
 				} else {
@@ -468,6 +497,9 @@ public class UserUpdateServlet extends SubscriberServlet {
 		} catch (Exception e) {
 			log.error("Exception encountered searching for Live Profile with sys_id " + sysId + ": " + e, e);
 			eventService.logEvent(new Event((String) details.get("id"), "Live Profile fetch exception", "Exception encountered searching for Live Profile with sys_id " + sysId + ": " + e, details, e));
+		}
+		if (log.isDebugEnabled()) {
+			log.debug("Returning Live Profile sys_id " + liveProfileSysId);
 		}
 
 		return liveProfileSysId;
@@ -1363,14 +1395,38 @@ public class UserUpdateServlet extends SubscriberServlet {
 	 * @return the base64 encoded value of the image data
 	 */
 	private String fetchUserPhoto(Map<String,String> newPerson, JSONObject oldPerson, JSONObject details) {
+		String base64PhotoData = fetchUserPhotoFromLenel(newPerson.get("employee_number"), details);
+
+		if (StringUtils.isEmpty(base64PhotoData)) {
+			String photoId = getPhotoId(newPerson, details);
+			if (StringUtils.isNotEmpty(photoId)) {
+				byte[] imageData = fetchImageFileData(photoId, details);
+				if (imageData != null) {
+					base64PhotoData = new String(Base64.getMimeEncoder().encode(imageData));
+				}
+			}
+		}
+
+		return base64PhotoData;
+	}
+
+	/**
+	 * <p>Returns the base64 encoded value of the image data.</p>
+	 *
+	 * @param id the IAM ID of the person
+	 * @param details the <code>JSONObject</code> object containing the details of the request
+	 * @return the base64 encoded value of the image data
+	 */
+	@SuppressWarnings("unchecked")
+	private String fetchUserPhotoFromLenel(String id, JSONObject details) {
 		String base64PhotoData = null;
 
-		String photoId = getPhotoId(newPerson, details);
-		if (StringUtils.isNotEmpty(photoId)) {
-			byte[] imageData = fetchImageFileData(photoId, details);
-			if (imageData != null) {
-				base64PhotoData = new String(Base64.getMimeEncoder().encode(imageData));
-			}
+		if (StringUtils.isEmpty((String) details.get("sessionToken"))) {
+			details.put("sessionToken", getSessionToken(details));
+		}
+		String cardholderId = fetchCardholderId(id, details);
+		if (StringUtils.isNotEmpty(cardholderId)) {
+			base64PhotoData = getLenelPhoto(cardholderId, details);
 		}
 
 		return base64PhotoData;
@@ -2101,6 +2157,276 @@ public class UserUpdateServlet extends SubscriberServlet {
 		}
 
 		return liveProfileSysId;
+	}
+
+	/**
+	 * <p>Returns the card holder ID on file in the Lenel system, if present.</p>
+	 *
+	 * @param id the IAM ID of the person
+	 * @param details the JSON object containing the details of this transaction
+	 * @return the cardholder's ID from the card key system
+	 */
+	@SuppressWarnings("unchecked")
+	private String fetchCardholderId(String id, JSONObject details) {
+		String cardholderId = null;
+
+		if (log.isDebugEnabled()) {
+			log.debug("Searching cardholder for IAM ID #" + id + " ...");
+		}
+		String url = lenelServer + LENEL_ID_FETCH_URL + id + "%22";
+		HttpGet get = new HttpGet(url);
+		get.setHeader(HttpHeaders.ACCEPT, "application/json");
+		get.setHeader("Session-Token", (String) details.get("sessionToken"));
+		get.setHeader("Application-Id", lenelApplicationId);
+		JSONObject fetchRequest = new JSONObject();
+		JSONObject fetchResponse = new JSONObject();
+		details.put("fetchRequest", fetchRequest);
+		details.put("fetchResponse", fetchResponse);
+		fetchRequest.put("url", url);
+		try {
+			HttpClient client = createHttpClient_AcceptsUntrustedCerts();
+//			HttpClient client = HttpClientProvider.getClient();
+			if (log.isDebugEnabled()) {
+				log.debug("Fetching cardholder ID using url " + url);
+			}
+			HttpResponse resp = client.execute(get);
+			int rc = resp.getStatusLine().getStatusCode();
+			String jsonRespString = "";
+			JSONObject result = new JSONObject();
+			HttpEntity entity = resp.getEntity();
+			if (entity != null) {
+				jsonRespString = EntityUtils.toString(entity);
+				result = (JSONObject) JSONValue.parse(jsonRespString);
+			}
+			fetchResponse.put("responseCode", rc);
+			fetchResponse.put("responseString", jsonRespString);
+			fetchResponse.put("responseObject", result);
+			if (log.isDebugEnabled()) {
+				log.debug("JSON response: " + result.toJSONString());
+			}
+			if (rc == 200) {
+				JSONArray records = (JSONArray) result.get("item_list");
+				if (records != null && records.size() > 0) {
+					JSONObject person = (JSONObject) ((JSONObject) records.get(0)).get("property_value_map");
+					cardholderId = person.get("ID").toString();
+					if (log.isDebugEnabled()) {
+						log.debug("Cardholder ID found for IAM ID " + id + ": " + cardholderId);
+					}
+				} else {
+					if (log.isDebugEnabled()) {
+						log.debug("Cardholder not found on lenel for IAM ID " + id);
+					}
+				}
+			} else {
+				log.error("Invalid HTTP Response Code returned when fetching Cardholder data for IAM ID " + id + ": " + rc);
+				eventService.logEvent(new Event(id, "Cardholder fetch error", "Invalid HTTP Response Code returned when fetching Cardholder data for IAM ID " + id + ": " + rc, details));
+			}
+		} catch (Exception e) {
+			log.error("Exception encountered when fetching Cardholder data for IAM ID " + id + ": " + e, e);
+			eventService.logEvent(new Event(id, "Cardholder fetch exception", "Exception encountered when fetching Cardholder data for IAM ID " + id + ": " + e, details, e));
+		}
+		if (log.isDebugEnabled() && StringUtils.isNotEmpty(cardholderId)) {
+			log.debug("Returning existing cardholder ID: " + cardholderId);
+		}
+
+		return cardholderId;
+	}
+
+	/**
+	 * <p>Returns the photo image data on file in the Lenel system, if present.</p>
+	 *
+	 * @param id the cardholder ID of the person
+	 * @param details the JSON object containing the details of this transaction
+	 * @return the cardholder's photo image data on file in the Lenel system, if present
+	 */
+	@SuppressWarnings("unchecked")
+	private String getLenelPhoto(String id, JSONObject details) {
+		String imageData = null;
+
+		if (log.isDebugEnabled()) {
+			log.debug("Searching for photo for cardholder ID #" + id + " ...");
+		}
+		String url = lenelServer + LENEL_PHOTO_FETCH_URL + id;
+		HttpGet get = new HttpGet(url);
+		get.setHeader(HttpHeaders.ACCEPT, "application/json");
+		get.setHeader("Session-Token", (String) details.get("sessionToken"));
+		get.setHeader("Application-Id", lenelApplicationId);
+		JSONObject fetchRequest = new JSONObject();
+		JSONObject fetchResponse = new JSONObject();
+		details.put("fetchRequest", fetchRequest);
+		details.put("fetchResponse", fetchResponse);
+		fetchRequest.put("url", url);
+		try {
+			HttpClient client = createHttpClient_AcceptsUntrustedCerts();
+//			HttpClient client = HttpClientProvider.getClient();
+			if (log.isDebugEnabled()) {
+				log.debug("Fetching cardholder photo using url " + url);
+			}
+			HttpResponse resp = client.execute(get);
+			int rc = resp.getStatusLine().getStatusCode();
+			String jsonRespString = "";
+			JSONObject result = new JSONObject();
+			HttpEntity entity = resp.getEntity();
+			if (entity != null) {
+				jsonRespString = EntityUtils.toString(entity);
+				result = (JSONObject) JSONValue.parse(jsonRespString);
+			}
+			fetchResponse.put("responseCode", rc);
+			fetchResponse.put("responseString", jsonRespString);
+			fetchResponse.put("responseObject", result);
+			if (log.isDebugEnabled()) {
+				log.debug("JSON response: " + result.toJSONString());
+			}
+			if (rc == 200) {
+				JSONArray records = (JSONArray) result.get("item_list");
+				if (records != null && records.size() > 0) {
+					JSONObject respObject = (JSONObject) ((JSONObject) records.get(0)).get("property_value_map");
+					if (respObject != null) {
+						JSONObject dataObject = (JSONObject) respObject.get("Data");
+						if (dataObject != null) {
+							imageData = (String) dataObject.get("data");
+							if (log.isDebugEnabled()) {
+								log.debug("Cardholder photo found for cardholder ID " + id);
+							}
+						} else {
+							if (log.isDebugEnabled()) {
+								log.debug("Cardholder photo not found on lenel for cardholder ID " + id);
+							}
+						}
+					} else {
+						if (log.isDebugEnabled()) {
+							log.debug("Cardholder photo not found on lenel for cardholder ID " + id);
+						}
+					}
+				} else {
+					if (log.isDebugEnabled()) {
+						log.debug("Cardholder photo not found on lenel for cardholder ID " + id);
+					}
+				}
+			} else {
+				log.error("Invalid HTTP Response Code returned when fetching Cardholder photo for cardholder ID " + id + ": " + rc);
+				eventService.logEvent(new Event(id, "Cardholder fetch error", "Invalid HTTP Response Code returned when fetching Cardholder photo for cardholder ID " + id + ": " + rc, details));
+			}
+		} catch (Exception e) {
+			log.error("Exception encountered when fetching Cardholder photo for cardholder ID " + id + ": " + e, e);
+			eventService.logEvent(new Event(id, "Cardholder fetch exception", "Exception encountered when fetching Cardholder photo for cardholder ID " + id + ": " + e, details, e));
+		}
+		if (log.isDebugEnabled() && StringUtils.isNotEmpty(imageData)) {
+			log.debug("Returning existing cardholder photo.");
+		}
+
+		return imageData;
+	}
+
+	/**
+	 * <p>Returns the Lenel session token provided by authenticating to the Lenel REST API.</p>
+	 *
+	 * @param details the JSON object containing the details of this transaction
+	 * @return the Lenel session token
+	 */
+	@SuppressWarnings("unchecked")
+	private String getSessionToken(JSONObject details) {
+		String token = null;
+
+		if (log.isDebugEnabled()) {
+			log.debug("Authenticating to Lenel to obtain a valid session token");
+		}
+
+		String url = lenelServer + AUTH_URL;
+		HttpPost post = new HttpPost(url);
+		post.setHeader(HttpHeaders.ACCEPT, "application/json");
+		post.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+		post.setHeader("Application-Id", lenelApplicationId);
+		JSONObject postData = new JSONObject();
+		postData.put("user_name", lenelUser);
+		postData.put("password", lenelPassword);
+		postData.put("directory_id", lenelDirectory);
+		JSONObject tokenRequest = new JSONObject();
+		JSONObject tokenResponse = new JSONObject();
+		details.put("tokenRequest", tokenRequest);
+		details.put("tokenResponse", tokenResponse);
+		tokenRequest.put("url", url);
+		tokenRequest.put("tokenData", postData);
+		try {
+			HttpClient client = createHttpClient_AcceptsUntrustedCerts();
+//			HttpClient client = HttpClientProvider.getClient();
+			if (log.isDebugEnabled()) {
+				log.debug("Authenticating to Lenel to obtain a valid session token using url " + url);
+			}
+			post.setEntity(new StringEntity(postData.toJSONString(), "utf-8"));
+			HttpResponse resp = client.execute(post);
+			int rc = resp.getStatusLine().getStatusCode();
+			String jsonRespString = "";
+			JSONObject result = new JSONObject();
+			HttpEntity entity = resp.getEntity();
+			if (entity != null) {
+				jsonRespString = EntityUtils.toString(entity);
+				result = (JSONObject) JSONValue.parse(jsonRespString);
+			}
+			tokenResponse.put("responseCode", rc);
+			tokenResponse.put("responseString", jsonRespString);
+			tokenResponse.put("responseObject", result);
+			if (rc == 200) {
+				token = (String) result.get("session_token");
+				if (StringUtils.isNotEmpty(token)) {
+					if (log.isDebugEnabled()) {
+						log.debug("Lenel Session Token: " + token);
+					}
+				} else {
+					log.error("Unable to obtain a valid session token when authenticating to Lenel.");
+					eventService.logEvent(new Event((String) details.get("id"), "Session token fetch error", "Unable to obtain a valid session token when authenticating to Lenel.", details));
+				}
+			} else {
+				log.error("Invalid HTTP Response Code returned when authenticating to Lenel to obtain a valid session token: " + rc);
+				eventService.logEvent(new Event((String) details.get("id"), "Session token fetch error", "Invalid HTTP Response Code returned when authenticating to Lenel to obtain a valid session token: " + rc, details));
+			}
+		} catch (Exception e) {
+			log.error("Exception encountered when authenticating to Lenel to obtain a valid session token: " + e, e);
+			eventService.logEvent(new Event((String) details.get("id"), "Session token fetch exception", "Exception encountered when authenticating to Lenel to obtain a valid session token: " + e, details, e));
+		}
+		if (log.isDebugEnabled()) {
+			log.debug("Returning Lenel Session Token: " + token);
+		}
+
+		return token;
+	}
+
+	@SuppressWarnings("deprecation")
+	public HttpClient createHttpClient_AcceptsUntrustedCerts() throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException {
+	    HttpClientBuilder b = HttpClientBuilder.create();
+	 
+	    // setup a Trust Strategy that allows all certificates.
+	    //
+	    SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
+	        public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+	            return true;
+	        }
+	    }).build();
+	    b.setSslcontext( sslContext);
+	 
+	    // don't check Hostnames, either.
+	    //      -- use SSLConnectionSocketFactory.getDefaultHostnameVerifier(), if you don't want to weaken
+	    HostnameVerifier hostnameVerifier = SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
+	 
+	    // here's the special part:
+	    //      -- need to create an SSL Socket Factory, to use our weakened "trust strategy";
+	    //      -- and create a Registry, to register it.
+	    //
+	    SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
+	    Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+	            .register("http", PlainConnectionSocketFactory.getSocketFactory())
+	            .register("https", sslSocketFactory)
+	            .build();
+	 
+	    // now, we create connection-manager using our Registry.
+	    //      -- allows multi-threaded use
+	    PoolingHttpClientConnectionManager connMgr = new PoolingHttpClientConnectionManager( socketFactoryRegistry);
+	    b.setConnectionManager( connMgr);
+	 
+	    // finally, build the HttpClient;
+	    //      -- done!
+	    HttpClient client = b.build();
+	    return client;
 	}
 
 	@SuppressWarnings("unchecked")
